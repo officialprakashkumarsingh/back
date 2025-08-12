@@ -13,7 +13,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'models.dart';
 import 'character_service.dart';
-import 'external_tools_service.dart';
 import 'message_queue.dart';
 import 'utils/message_parsing.dart';
 import 'widgets/html_preview_dialog.dart';
@@ -55,7 +54,7 @@ class ChatPageState extends State<ChatPage> {
 
   http.Client? _httpClient;
   final CharacterService _characterService = CharacterService();
-  final ExternalToolsService _externalToolsService = ExternalToolsService();
+
 
   final _prompts = ['Explain quantum computing', 'Write a Python snippet', 'Draft an email to my boss', 'Ideas for weekend trip'];
   
@@ -80,7 +79,6 @@ class ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     _characterService.addListener(_onCharacterChanged);
-    _externalToolsService.addListener(_onExternalToolsServiceChanged);
     _updateGreetingForCharacter();
     _controller.addListener(() {
       setState(() {}); // Refresh UI when text changes
@@ -90,7 +88,6 @@ class ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     _characterService.removeListener(_onCharacterChanged);
-    _externalToolsService.removeListener(_onExternalToolsServiceChanged);
     _controller.dispose();
     _scroll.dispose();
     _httpClient?.close();
@@ -114,11 +111,7 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
-  void _onExternalToolsServiceChanged() {
-    if (mounted) {
-      setState(() {}); // Refresh UI when external tools service state changes
-    }
-  }
+
 
   void _updateGreetingForCharacter() {
     final selectedCharacter = _characterService.selectedCharacter;
@@ -239,74 +232,13 @@ class ChatPageState extends State<ChatPage> {
         messageContent = {'role': 'user', 'content': fullPrompt};
       }
 
-      // Build system prompt with external tools information
-      final availableTools = _externalToolsService.getAvailableTools();
-      final toolsInfo = availableTools.map((tool) => 
-        '- ${tool.name}: ${tool.description}'
-      ).join('\n');
-      
       final systemMessage = {
         'role': 'system',
-        'content': '''You are AhamAI, an intelligent assistant with access to external tools. You can execute tools to help users with various tasks.
+        'content': '''You are AhamAI, an intelligent assistant. You provide helpful, accurate, and comprehensive responses to user questions.
 
-Available External Tools:
-$toolsInfo
+Be helpful, conversational, and provide detailed explanations when needed. You can write code, explain concepts, help with problems, and engage in discussions on a wide variety of topics.
 
-🔧 TOOL USAGE:
-When you need to use a single tool, use this JSON format:
-```json
-{
-  "tool_use": true,
-  "tool_name": "tool_name_here",
-  "parameters": {
-    "param1": "value1",
-    "param2": "value2"
-  }
-}
-```
-
-For parallel tool execution (when multiple tools are needed), use this array format:
-```json
-[
-  {
-    "tool_use": true,
-    "tool_name": "first_tool",
-    "parameters": {"param1": "value1"}
-  },
-  {
-    "tool_use": true,
-    "tool_name": "second_tool", 
-    "parameters": {"param2": "value2"}
-  }
-]
-```
-
-🎯 WHEN TO USE TOOLS:
-- **screenshot**: Capture single/multiple webpages visually (supports urls array for batch)
-- **generate_image**: Create unique images with enhanced prompts (models: flux, turbo) - now generates different images for different prompts
-- **fetch_image_models**: Show available image generation models
-- **web_search**: Get real-time information from DuckDuckGo and Wikipedia (enhanced with deep search)
-- **screenshot_vision**: Analyze single images OR multiple images as collage (ALWAYS include image_url or image_urls parameter)
-- **create_image_collage**: Combine multiple images into one collage for easier analysis
-- **mermaid_chart**: Generate professional diagrams with auto-enhancement (flowchart, sequence, class, gantt, etc.)
-
-🔍 ENHANCED FEATURES:
-- Image generation now uses unique seeds to prevent duplicate images
-- Screenshot analysis supports multiple images via automatic collage creation
-- Mermaid diagrams auto-enhanced with professional styling and structure
-- All tools optimized for parallel execution when appropriate
-- **fetch_ai_models**: List available AI chat models
-- **switch_ai_model**: Change to different AI model
-
-🔗 PARALLEL EXECUTION:
-You can now use multiple tools simultaneously! For example:
-- Take screenshot + analyze it with vision
-- Generate image + search for related information
-- Fetch models + take screenshot
-
-Always use proper JSON format and explain what you're doing to help the user understand the process.
-
-Be conversational and helpful!'''
+Always be polite, professional, and aim to provide the most useful response possible.'''
       };
 
       request.body = json.encode({
@@ -2391,6 +2323,15 @@ class _MessageContentWithInlineCode extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    // Debug: Check if this message has the duplication issue
+    if (message.text == "Hi, I'm AhamAI. Ask me anything!") {
+      print('🐛 DEBUG: Rendering greeting message');
+      print('  text: "${message.text}"');
+      print('  displayText: "${message.displayText}"');
+      print('  codes.length: ${message.codes.length}');
+      print('  isStreaming: ${message.isStreaming}');
+    }
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
