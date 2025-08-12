@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../widgets/html_preview_dialog.dart';
+import '../widgets/code_execution_dialog.dart';
+import 'code_execution_service.dart';
 
 class CodeBlockService {
   static const Map<String, Color> _languageColors = {
@@ -35,6 +37,10 @@ class CodeBlockService {
     return language.toLowerCase() == 'html' || language.toLowerCase() == 'htm';
   }
 
+  static bool isExecutableCode(String language) {
+    return CodeExecutionService.isExecutable(language);
+  }
+
   static void copyCode(BuildContext context, String code) {
     Clipboard.setData(ClipboardData(text: code));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -61,6 +67,18 @@ class CodeBlockService {
       context: context,
       builder: (BuildContext context) {
         return HtmlPreviewDialog(htmlContent: htmlCode);
+      },
+    );
+  }
+
+  static void executeCode(BuildContext context, String code, String language) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CodeExecutionDialog(
+          code: code,
+          language: language,
+        );
       },
     );
   }

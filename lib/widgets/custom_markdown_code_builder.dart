@@ -12,6 +12,7 @@ class CustomMarkdownCodeBuilder extends MarkdownElementBuilder {
     if (code.isEmpty) return null;
     
     final isHtml = CodeBlockService.isHtmlCode(language ?? '');
+    final isExecutable = CodeBlockService.isExecutableCode(language ?? '');
     final languageColor = CodeBlockService.getLanguageColor(language ?? '');
     
     return Container(
@@ -60,10 +61,28 @@ class CustomMarkdownCodeBuilder extends MarkdownElementBuilder {
                     constraints: const BoxConstraints(
                       minWidth: 32,
                       minHeight: 32,
-                    ),
-                    tooltip: 'Preview HTML',
-                  ),
+                                      ),
+                  tooltip: 'Preview HTML',
+                ),
+              if (isExecutable)
                 IconButton(
+                  onPressed: () => CodeBlockService.executeCode(
+                    navigatorKey.currentContext!, 
+                    code,
+                    language ?? '',
+                  ),
+                  icon: const Icon(
+                    Icons.play_arrow_rounded,
+                    size: 16,
+                    color: Color(0xFF000000),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                  tooltip: 'Execute code',
+                ),
+              IconButton(
                   onPressed: () => CodeBlockService.copyCode(
                     navigatorKey.currentContext!, 
                     code
