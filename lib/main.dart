@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import 'auth_and_profile_pages.dart';
 import 'auth_service.dart';
+import 'widgets/custom_markdown_code_builder.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,7 @@ class AhamAIApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'AhamAI',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

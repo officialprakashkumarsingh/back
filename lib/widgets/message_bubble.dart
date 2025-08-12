@@ -595,20 +595,6 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Thumbs up
-                      ActionButton(
-                        icon: Icons.thumb_up_rounded,
-                        onTap: () => _giveFeedback(context, true),
-                        tooltip: 'Good response',
-                      ),
-                      const SizedBox(width: 8),
-                      // Thumbs down
-                      ActionButton(
-                        icon: Icons.thumb_down_rounded,
-                        onTap: () => _giveFeedback(context, false),
-                        tooltip: 'Bad response',
-                      ),
-                      const SizedBox(width: 8),
                       // Copy
                       ActionButton(
                         icon: Icons.content_copy_rounded,

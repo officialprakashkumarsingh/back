@@ -12,6 +12,7 @@ import 'message_queue.dart';
 import 'widgets/input_bar.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/enhanced_code_block.dart';
+import 'widgets/custom_markdown_code_builder.dart';
 import 'services/message_modifier_service.dart';
 import 'services/ai_chat_service.dart';
 
@@ -569,6 +570,9 @@ class ChatPageState extends State<ChatPage> {
                               if (message.displayText.isNotEmpty)
                                 MarkdownBody(
                                   data: message.displayText,
+                                  builders: {
+                                    'code': CustomMarkdownCodeBuilder(),
+                                  },
                                   styleSheet: MarkdownStyleSheet(
                                     p: const TextStyle(
                                       fontSize: 15, 
@@ -595,9 +599,6 @@ class ChatPageState extends State<ChatPage> {
                                     em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
                                   ),
                                 ),
-                              // Enhanced code blocks (only for finished messages)
-                              if (!message.isStreaming && message.codes.isNotEmpty)
-                                EnhancedCodeBlock(codes: message.codes),
                             ],
                           );
                         } else {
@@ -678,10 +679,11 @@ class ChatPageState extends State<ChatPage> {
             ],
           ),
         ),
-        // Queue Panel
+        // Queue Panel - positioned just above input area
         Positioned(
-          top: 50,
+          bottom: 100, // Just above the input area
           right: 0,
+          left: 0,
           child: QueuePanel(
             isVisible: _showQueuePanel && _messageQueue.hasMessages,
             onDismiss: () {
@@ -694,7 +696,7 @@ class ChatPageState extends State<ChatPage> {
         // Queue Button (shows when there are queued messages but panel is hidden)
         if (_messageQueue.hasMessages && !_showQueuePanel)
           Positioned(
-            top: 60,
+            bottom: 110, // Just above the input area
             right: 20,
             child: ValueListenableBuilder<List<String>>(
               valueListenable: _messageQueue.queueNotifier,
