@@ -1,89 +1,94 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 class QuickReplyService {
-  static List<String> getContextualSuggestions(String lastBotMessage) {
-    final lowerMessage = lastBotMessage.toLowerCase();
-    
-    // Programming/Code related suggestions
-    if (lowerMessage.contains('code') || lowerMessage.contains('function') || 
-        lowerMessage.contains('class') || lowerMessage.contains('variable')) {
-      return [
-        "Can you explain this in more detail?",
-        "Show me an example",
-        "What are the best practices?",
-        "How do I debug this?",
-        "Are there any alternatives?"
-      ];
+  static const String _apiUrl = 'https://ahamai-api.officialprakashkrsingh.workers.dev/v1/chat/completions';
+  static const String _apiKey = 'ahamaibyprakash25';
+  
+  static Future<List<String>> getAIDynamicSuggestions({
+    required String lastBotMessage,
+    required String conversationContext,
+    required String selectedModel,
+  }) async {
+    try {
+      final client = http.Client();
+      
+      final request = http.Request('POST', Uri.parse(_apiUrl));
+      request.headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_apiKey',
+      });
+
+      final systemMessage = {
+        'role': 'system',
+        'content': '''You are a helpful assistant that generates quick reply suggestions for users to continue conversations.
+
+Based on the AI's last response, generate 5 relevant, concise follow-up questions or statements that a user might want to ask.
+
+Rules:
+1. Keep each suggestion under 10 words
+2. Make them contextually relevant to the last AI response
+3. Vary the types: clarification, examples, next steps, alternatives, deeper dive
+4. Make them natural and conversational
+5. Return ONLY a JSON array of strings, nothing else
+
+Example format: ["Tell me more", "Show an example", "What's next?", "Any alternatives?", "How does this work?"]'''
+      };
+
+      final userMessage = {
+        'role': 'user',
+        'content': '''Generate quick reply suggestions based on this AI response:
+
+AI Response: "$lastBotMessage"
+
+Context: $conversationContext
+
+Generate 5 relevant follow-up questions/statements as a JSON array.'''
+      };
+
+      request.body = jsonEncode({
+        'model': selectedModel,
+        'messages': [systemMessage, userMessage],
+        'stream': false,
+        'max_tokens': 200,
+        'temperature': 0.7,
+      });
+
+      final response = await client.send(request);
+      final responseBody = await response.stream.bytesToString();
+      
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(responseBody);
+        final content = jsonResponse['choices']?[0]?['message']?['content'] as String?;
+        
+        if (content != null) {
+          // Try to extract JSON array from the response
+          final cleanContent = content.trim();
+          if (cleanContent.startsWith('[') && cleanContent.endsWith(']')) {
+            final List<dynamic> suggestions = jsonDecode(cleanContent);
+            return suggestions.cast<String>().take(5).toList();
+          }
+        }
+      }
+      
+      client.close();
+      
+      // Fallback to static suggestions if AI fails
+      return getFallbackSuggestions();
+      
+    } catch (e) {
+      // Fallback to static suggestions if error occurs
+      return getFallbackSuggestions();
     }
-    
-    // Tutorial/Learning suggestions
-    if (lowerMessage.contains('tutorial') || lowerMessage.contains('learn') ||
-        lowerMessage.contains('beginner') || lowerMessage.contains('guide')) {
-      return [
-        "What's the next step?",
-        "Can you give me practice exercises?",
-        "What prerequisites do I need?",
-        "Show me a complete example",
-        "What common mistakes should I avoid?"
-      ];
-    }
-    
-    // Problem solving suggestions
-    if (lowerMessage.contains('error') || lowerMessage.contains('problem') ||
-        lowerMessage.contains('issue') || lowerMessage.contains('fix')) {
-      return [
-        "How do I prevent this in the future?",
-        "Are there other solutions?",
-        "What caused this problem?",
-        "Can you walk me through the fix?",
-        "Is there a simpler approach?"
-      ];
-    }
-    
-    // Explanation/Concept suggestions
-    if (lowerMessage.contains('concept') || lowerMessage.contains('theory') ||
-        lowerMessage.contains('explain') || lowerMessage.contains('understand')) {
-      return [
-        "Can you simplify this?",
-        "Give me a real-world example",
-        "How does this compare to...?",
-        "What are the key benefits?",
-        "When should I use this?"
-      ];
-    }
-    
-    // List/Comparison suggestions
-    if (lowerMessage.contains('options') || lowerMessage.contains('types') ||
-        lowerMessage.contains('ways') || lowerMessage.contains('methods')) {
-      return [
-        "Which one do you recommend?",
-        "What are the pros and cons?",
-        "Show me examples of each",
-        "Which is best for beginners?",
-        "How do I choose between them?"
-      ];
-    }
-    
-    // Technical documentation suggestions
-    if (lowerMessage.contains('api') || lowerMessage.contains('documentation') ||
-        lowerMessage.contains('reference') || lowerMessage.contains('syntax')) {
-      return [
-        "Show me the parameters",
-        "What's the return value?",
-        "Do you have a working example?",
-        "What are common use cases?",
-        "How do I handle errors?"
-      ];
-    }
-    
-    // General follow-up suggestions
+  }
+  
+  static List<String> getFallbackSuggestions() {
     return [
-      "Tell me more about this",
-      "Can you expand on that?",
-      "Show me an example",
-      "What else should I know?",
-      "How can I apply this?",
-      "Are there any gotchas?",
-      "What's the best practice?",
-      "Can you simplify this?"
+      "Tell me more",
+      "Show an example", 
+      "What's next?",
+      "Any alternatives?",
+      "Can you explain further?"
     ];
   }
   
