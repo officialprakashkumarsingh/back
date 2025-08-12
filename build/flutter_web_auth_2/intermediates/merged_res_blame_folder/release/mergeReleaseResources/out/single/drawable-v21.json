@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/drawable-v21/notification_action_background.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/drawable-v21/notification_action_background.xml"
+    }
+]

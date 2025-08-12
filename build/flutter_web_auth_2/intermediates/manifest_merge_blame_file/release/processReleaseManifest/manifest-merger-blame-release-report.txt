@@ -1,0 +1,17 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.linusu.flutter_web_auth_2" >
+4
+5    <uses-sdk android:minSdkVersion="21" />
+6
+7    <queries>
+7-->/home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:4:5-8:15
+8        <intent>
+8-->/home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:5:9-7:18
+9            <action android:name="android.support.customtabs.action.CustomTabsService" />
+9-->/home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:6:13-90
+9-->/home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:6:21-87
+10        </intent>
+11    </queries>
+12
+13</manifest>

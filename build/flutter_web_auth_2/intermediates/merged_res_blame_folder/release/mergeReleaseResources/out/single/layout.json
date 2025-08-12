@@ -1,0 +1,30 @@
+[
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/layout/browser_actions_context_menu_page.xml",
+        "source": "com.linusu.flutter_web_auth_2-browser-1.8.0-17:/layout/browser_actions_context_menu_page.xml"
+    },
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/layout/notification_template_part_time.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/layout/notification_template_part_time.xml"
+    },
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/layout/ime_secondary_split_test_activity.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/layout/ime_secondary_split_test_activity.xml"
+    },
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/layout/ime_base_split_test_activity.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/layout/ime_base_split_test_activity.xml"
+    },
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/layout/notification_template_part_chronometer.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/layout/notification_template_part_chronometer.xml"
+    },
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/layout/custom_dialog.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/layout/custom_dialog.xml"
+    },
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/layout/browser_actions_context_menu_row.xml",
+        "source": "com.linusu.flutter_web_auth_2-browser-1.8.0-17:/layout/browser_actions_context_menu_row.xml"
+    }
+]

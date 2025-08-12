@@ -1,0 +1,82 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.linusu.flutter_web_auth_2-mergeReleaseResources-24:/values-mn/values-mn.xml",
+            "map": [
+                {
+                    "source": "/home/ubuntu/.gradle/caches/8.10.2/transforms/b7afdc810aa3c152069d43f671a2cdfc/transformed/core-1.13.1/res/values-mn/values-mn.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,153,255,356,454,559,671,790",
+                        "endColumns": "97,101,100,97,104,111,118,100",
+                        "endOffsets": "148,250,351,449,554,666,785,886"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,13",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,153,255,356,454,559,671,1212",
+                        "endColumns": "97,101,100,97,104,111,118,100",
+                        "endOffsets": "148,250,351,449,554,666,785,1308"
+                    }
+                },
+                {
+                    "source": "/home/ubuntu/.gradle/caches/8.10.2/transforms/cc1d23be878f4cc1b675da75f4246b78/transformed/browser-1.8.0/res/values-mn/values-mn.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,160,264,369",
+                        "endColumns": "104,103,104,107",
+                        "endOffsets": "155,259,364,472"
+                    },
+                    "to": {
+                        "startLines": "9,10,11,12",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "790,895,999,1104",
+                        "endColumns": "104,103,104,107",
+                        "endOffsets": "890,994,1099,1207"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "com.linusu.flutter_web_auth_2-release-26:/values-mn/values-mn.xml",
+            "map": [
+                {
+                    "source": "/home/ubuntu/.gradle/caches/8.10.2/transforms/b7afdc810aa3c152069d43f671a2cdfc/transformed/core-1.13.1/res/values-mn/values-mn.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,153,255,356,454,559,671,790",
+                        "endColumns": "97,101,100,97,104,111,118,100",
+                        "endOffsets": "148,250,351,449,554,666,785,886"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,13",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,153,255,356,454,559,671,1212",
+                        "endColumns": "97,101,100,97,104,111,118,100",
+                        "endOffsets": "148,250,351,449,554,666,785,1308"
+                    }
+                },
+                {
+                    "source": "/home/ubuntu/.gradle/caches/8.10.2/transforms/cc1d23be878f4cc1b675da75f4246b78/transformed/browser-1.8.0/res/values-mn/values-mn.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,160,264,369",
+                        "endColumns": "104,103,104,107",
+                        "endOffsets": "155,259,364,472"
+                    },
+                    "to": {
+                        "startLines": "9,10,11,12",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "790,895,999,1104",
+                        "endColumns": "104,103,104,107",
+                        "endOffsets": "890,994,1099,1207"
+                    }
+                }
+            ]
+        }
+    ]
+}

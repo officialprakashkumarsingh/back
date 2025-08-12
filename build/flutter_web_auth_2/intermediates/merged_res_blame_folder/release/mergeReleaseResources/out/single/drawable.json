@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/drawable/notification_bg.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/drawable/notification_bg.xml"
+    },
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/drawable/notification_icon_background.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/drawable/notification_icon_background.xml"
+    },
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/drawable/notification_tile_bg.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/drawable/notification_tile_bg.xml"
+    },
+    {
+        "merged": "com.linusu.flutter_web_auth_2-release-26:/drawable/notification_bg_low.xml",
+        "source": "com.linusu.flutter_web_auth_2-core-1.13.1-15:/drawable/notification_bg_low.xml"
+    }
+]
