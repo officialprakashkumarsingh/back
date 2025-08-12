@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "io.flutter.plugins.googlemobileads.google_mobile_ads-release-38:/xml/image_share_filepaths.xml",
+        "source": "io.flutter.plugins.googlemobileads.google_mobile_ads-browser-1.8.0-25:/xml/image_share_filepaths.xml"
+    },
+    {
+        "merged": "io.flutter.plugins.googlemobileads.google_mobile_ads-release-38:/xml/gma_ad_services_config.xml",
+        "source": "io.flutter.plugins.googlemobileads.google_mobile_ads-jetified-play-services-ads-lite-23.6.0-5:/xml/gma_ad_services_config.xml"
+    }
+]

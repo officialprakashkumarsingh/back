@@ -1,0 +1,1 @@
+com.linusu.flutter_web_auth_2

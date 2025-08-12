@@ -663,6 +663,50 @@ Always be polite, professional, and aim to provide the most useful response poss
                       message: message,
                       onRegenerate: () => _regenerateResponse(index),
                       onUserMessageTap: () => _showUserMessageOptions(context, message),
+                      messageContentBuilder: (message) {
+                        if (message.sender == Sender.bot) {
+                          // For bot messages, render with markdown
+                          return MarkdownBody(
+                            data: message.isStreaming ? message.displayText : message.displayText,
+                            styleSheet: MarkdownStyleSheet(
+                              p: const TextStyle(
+                                fontSize: 15, 
+                                height: 1.5, 
+                                color: Color(0xFF000000),
+                                fontWeight: FontWeight.w400,
+                              ),
+                              code: TextStyle(
+                                backgroundColor: const Color(0xFFEAE9E5),
+                                color: const Color(0xFF000000),
+                                fontFamily: 'SF Mono',
+                                fontSize: 14,
+                              ),
+                              codeblockDecoration: BoxDecoration(
+                                color: const Color(0xFFEAE9E5),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              h1: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                              h2: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                              h3: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                              listBullet: const TextStyle(color: Color(0xFFA3A3A3)),
+                              blockquote: const TextStyle(color: Color(0xFFA3A3A3)),
+                              strong: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                              em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
+                            ),
+                          );
+                        } else {
+                          // For user messages, simple text
+                          return Text(
+                            message.text,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              height: 1.4,
+                              color: Color(0xFF000000),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          );
+                        }
+                      },
                     );
                   },
                 ),

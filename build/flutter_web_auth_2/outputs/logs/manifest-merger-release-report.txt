@@ -1,0 +1,25 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:1:1-9:12
+INJECTED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:1:1-9:12
+	package
+		ADDED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:2:5-44
+		INJECTED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:1:11-69
+queries
+ADDED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:4:5-8:15
+intent#action:name:android.support.customtabs.action.CustomTabsService
+ADDED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:5:9-7:18
+action#android.support.customtabs.action.CustomTabsService
+ADDED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:6:13-90
+	android:name
+		ADDED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml:6:21-87
+uses-sdk
+INJECTED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml
+INJECTED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/ubuntu/.pub-cache/hosted/pub.dev/flutter_web_auth_2-4.1.0/android/src/main/AndroidManifest.xml
