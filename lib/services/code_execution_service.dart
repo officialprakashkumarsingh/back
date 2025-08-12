@@ -5,9 +5,6 @@ class CodeExecutionService {
   
   // Languages that support execution preview
   static const Set<String> _executableLanguages = {
-    'dart',
-    'python', 'py',
-    'java',
     'javascript', 'js',
   };
   
@@ -50,16 +47,9 @@ class CodeExecutionService {
   
   static String getLanguageExecutor(String language) {
     switch (language.toLowerCase()) {
-      case 'dart':
-        return 'Dart VM';
-      case 'python':
-      case 'py':
-        return 'Python 3.x';
-      case 'java':
-        return 'Java SE';
       case 'javascript':
       case 'js':
-        return 'Node.js';
+        return 'JavaScript Engine';
       default:
         return 'Unknown';
     }
@@ -67,13 +57,6 @@ class CodeExecutionService {
   
   static String getExecutionIcon(String language) {
     switch (language.toLowerCase()) {
-      case 'dart':
-        return '🎯';
-      case 'python':
-      case 'py':
-        return '🐍';
-      case 'java':
-        return '☕';
       case 'javascript':
       case 'js':
         return '🟨';
