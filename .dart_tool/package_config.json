@@ -236,12 +236,6 @@
       "languageVersion": "3.2"
     },
     {
-      "name": "font_awesome_flutter",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/font_awesome_flutter-10.9.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
       "name": "functions_client",
       "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/functions_client-2.4.3",
       "packageUri": "lib/",
@@ -860,7 +854,7 @@
       "languageVersion": "3.1"
     }
   ],
-  "generated": "2025-08-12T11:18:26.912939Z",
+  "generated": "2025-08-12T11:24:26.223474Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///workspace/flutter",
