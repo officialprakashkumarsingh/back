@@ -4,9 +4,11 @@ import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import java.io.File
-import java.io.IOException
-import java.util.concurrent.TimeUnit
+import java.io.StringWriter
+import java.io.PrintWriter
+import java.util.regex.Pattern
+import javax.script.ScriptEngineManager
+import javax.script.ScriptException
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "com.ahamai.app/code_execution"
@@ -40,10 +42,10 @@ class MainActivity: FlutterActivity() {
         val startTime = System.currentTimeMillis()
         
         return when (language.lowercase()) {
-            "dart" -> executeDart(code, startTime)
-            "python", "py" -> executePython(code, startTime)
-            "java" -> executeJava(code, startTime)
-            "javascript", "js" -> executeJavaScript(code, startTime)
+            "javascript", "js" -> executeJavaScriptEmbedded(code, startTime)
+            "python", "py" -> executePythonSimulator(code, startTime)
+            "java" -> executeJavaSimulator(code, startTime)
+            "dart" -> executeDartAnalyzer(code, startTime)
             else -> mapOf(
                 "output" to "",
                 "error" to "Language '$language' not supported",
