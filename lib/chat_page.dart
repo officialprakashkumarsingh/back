@@ -1243,35 +1243,7 @@ class _MessageBubbleState extends State<_MessageBubble> with TickerProviderState
         borderRadius: BorderRadius.circular(20),
       ),
       child: isBot
-          ? MarkdownBody(
-              data: widget.message.displayText,
-              imageBuilder: (uri, title, alt) => _buildImageWidget(uri.toString()),
-              styleSheet: MarkdownStyleSheet(
-                p: const TextStyle(
-                  fontSize: 15, 
-                  height: 1.5, 
-                  color: Color(0xFF000000),
-                  fontWeight: FontWeight.w400,
-                ),
-                code: TextStyle(
-                  backgroundColor: const Color(0xFFEAE9E5),
-                  color: const Color(0xFF000000),
-                  fontFamily: 'SF Mono',
-                  fontSize: 14,
-                ),
-                codeblockDecoration: BoxDecoration(
-                  color: const Color(0xFFEAE9E5),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                h1: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-                h2: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-                h3: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-                listBullet: const TextStyle(color: Color(0xFFA3A3A3)),
-                blockquote: const TextStyle(color: Color(0xFFA3A3A3)),
-                strong: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-                em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
-              ),
-            )
+          ? _MessageContentWithInlineCode(message: widget.message)
           : Text(
               widget.message.text, 
               style: const TextStyle(
@@ -1291,8 +1263,6 @@ class _MessageBubbleState extends State<_MessageBubble> with TickerProviderState
           // Thoughts panel for bot messages - MOVED ABOVE THE MESSAGE
           if (isBot && widget.message.thoughts.isNotEmpty)
             _ThoughtsPanel(thoughts: widget.message.thoughts),
-          if (isBot && widget.message.codes.isNotEmpty)
-            _CodePanel(codes: widget.message.codes),
           // Tool results panel for bot messages
           if (isBot && widget.message.toolData.isNotEmpty)
             _ToolResultsPanel(toolData: widget.message.toolData),
