@@ -1652,32 +1652,7 @@ class _InputBar extends StatelessWidget {
                 children: [
                   // Image preview removed as requested
                   
-                  // Action icons row
-                  Row(
-                    children: [
 
-
-                        
-                        // Image Upload Icon - clean design
-                        _AnimatedModeIcon(
-                          isActive: uploadedImagePath != null,
-                          icon: uploadedImagePath != null 
-                              ? Icons.close
-                              : Icons.camera_alt,
-                          label: 'Image',
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            if (uploadedImagePath != null) {
-                              onClearImage();
-                            } else {
-                              onImageUpload();
-                            }
-                          },
-                        ),
-                      
-                      const Spacer(),
-                    ],
-                  ),
                 ],
               ),
             ),
