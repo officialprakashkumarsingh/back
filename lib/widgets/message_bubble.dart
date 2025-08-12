@@ -12,6 +12,7 @@ class MessageBubble extends StatefulWidget {
   final VoidCallback? onRegenerate;
   final VoidCallback? onUserMessageTap;
   final Widget Function(Message) messageContentBuilder;
+  final Function(String modifyType)? onModifyResponse;
   
   const MessageBubble({
     super.key,
@@ -19,6 +20,7 @@ class MessageBubble extends StatefulWidget {
     this.onRegenerate,
     this.onUserMessageTap,
     required this.messageContentBuilder,
+    this.onModifyResponse,
   });
 
   @override
@@ -154,6 +156,213 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
     );
     // Hide actions after interaction
     _toggleActions();
+  }
+
+  void _showModifyOptions(BuildContext context) {
+    HapticFeedback.lightImpact();
+    _toggleActions(); // Hide action buttons
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF8F8F8),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Modify Response',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF000000),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.expand_more,
+                      title: 'Expand Response',
+                      subtitle: 'Make it more detailed and comprehensive',
+                      onTap: () => _handleModifyOption(context, 'expand'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.compress,
+                      title: 'Shorten Response',
+                      subtitle: 'Make it more concise and to the point',
+                      onTap: () => _handleModifyOption(context, 'shorten'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.school,
+                      title: 'Explain Simply',
+                      subtitle: 'Use simpler language and examples',
+                      onTap: () => _handleModifyOption(context, 'simplify'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.business,
+                      title: 'Professional Tone',
+                      subtitle: 'Make it more formal and professional',
+                      onTap: () => _handleModifyOption(context, 'professional'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.sentiment_satisfied,
+                      title: 'Casual Tone',
+                      subtitle: 'Make it more friendly and conversational',
+                      onTap: () => _handleModifyOption(context, 'casual'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.format_list_bulleted,
+                      title: 'Add Examples',
+                      subtitle: 'Include practical examples and use cases',
+                      onTap: () => _handleModifyOption(context, 'examples'),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModifyOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF000000).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: const Color(0xFF000000),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF000000),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF666666),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Color(0xFF999999),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleModifyOption(BuildContext context, String modifyType) {
+    Navigator.pop(context); // Close the bottom sheet
+    
+    if (widget.onModifyResponse != null) {
+      widget.onModifyResponse!(modifyType);
+    }
+    
+    // Show confirmation snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '✨ Modifying response to be ${_getModifyDescription(modifyType)}...',
+          style: const TextStyle(
+            color: Color(0xFF000000),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        elevation: 4,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  String _getModifyDescription(String modifyType) {
+    switch (modifyType) {
+      case 'expand':
+        return 'more detailed';
+      case 'shorten':
+        return 'more concise';
+      case 'simplify':
+        return 'simpler';
+      case 'professional':
+        return 'more professional';
+      case 'casual':
+        return 'more casual';
+      case 'examples':
+        return 'include examples';
+      default:
+        return 'modified';
+    }
   }
 
   Widget _buildImageWidget(String url) {
@@ -359,6 +568,13 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
                           _toggleActions();
                         },
                         tooltip: 'Regenerate',
+                      ),
+                      const SizedBox(width: 8),
+                      // Modify Response
+                      ActionButton(
+                        icon: Icons.edit_outlined,
+                        onTap: () => _showModifyOptions(context),
+                        tooltip: 'Modify response',
                       ),
                     ],
                   ),

@@ -371,6 +371,51 @@ Always be polite, professional, and aim to provide the most useful response poss
       _generateResponse(lastUserPrompt);
     }
   }
+
+  void _modifyResponse(int botMessageIndex, String modifyType) {
+    if (botMessageIndex < 0 || botMessageIndex >= _messages.length) return;
+    
+    final botMessage = _messages[botMessageIndex];
+    if (botMessage.sender != Sender.bot || botMessage.isStreaming) return;
+
+    // Get the original user message
+    int userMessageIndex = botMessageIndex - 1;
+    if (userMessageIndex < 0 || _messages[userMessageIndex].sender != Sender.user) return;
+    
+    String originalUserPrompt = _messages[userMessageIndex].text;
+    String modificationInstruction = _getModificationInstruction(modifyType);
+    
+    // Create a new prompt that includes the modification request
+    String modifiedPrompt = '''$originalUserPrompt
+
+Please modify your previous response to be $modificationInstruction. Keep the same core information but adjust the style/format as requested.
+
+Previous response:
+${botMessage.text}''';
+
+    // Remove the old bot response and generate a new one
+    setState(() => _messages.removeAt(botMessageIndex));
+    _generateResponse(modifiedPrompt);
+  }
+
+  String _getModificationInstruction(String modifyType) {
+    switch (modifyType) {
+      case 'expand':
+        return 'more detailed and comprehensive, with additional explanations and context';
+      case 'shorten':
+        return 'more concise and to the point, removing unnecessary details while keeping key information';
+      case 'simplify':
+        return 'explained in simpler terms with easier language and practical examples';
+      case 'professional':
+        return 'written in a more formal and professional tone suitable for business contexts';
+      case 'casual':
+        return 'written in a more friendly, conversational, and casual tone';
+      case 'examples':
+        return 'enhanced with practical examples, use cases, and real-world applications';
+      default:
+        return 'modified';
+    }
+  }
   
   void _stopGeneration() {
     _httpClient?.close();
@@ -663,6 +708,7 @@ Always be polite, professional, and aim to provide the most useful response poss
                       message: message,
                       onRegenerate: () => _regenerateResponse(index),
                       onUserMessageTap: () => _showUserMessageOptions(context, message),
+                      onModifyResponse: (modifyType) => _modifyResponse(index, modifyType),
                       messageContentBuilder: (message) {
                         if (message.sender == Sender.bot) {
                           // For bot messages, render with markdown
