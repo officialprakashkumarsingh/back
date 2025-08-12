@@ -5,7 +5,7 @@ class CodeExecutionService {
   
   // Languages that support execution preview
   static const Set<String> _executableLanguages = {
-    'javascript', 'js',
+    // Code execution disabled for Android platform compatibility
   };
   
   static bool isExecutable(String language) {
