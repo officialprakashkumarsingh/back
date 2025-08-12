@@ -1024,8 +1024,6 @@ Error: ${result['error']}''';
               isEditing: _editingMessageId != null,
               onCancelEdit: _cancelEditing,
               externalToolsService: _externalToolsService,
-              webSearchMode: _webSearchMode,
-              onToggleWebSearch: _toggleWebSearch,
               onImageUpload: _handleImageUpload,
               uploadedImagePath: _uploadedImagePath,
               onClearImage: _clearUploadedImage,
@@ -1489,8 +1487,6 @@ class _InputBar extends StatelessWidget {
     required this.isEditing,
     required this.onCancelEdit,
     required this.externalToolsService,
-    required this.webSearchMode,
-    required this.onToggleWebSearch,
     required this.onImageUpload,
     this.uploadedImagePath,
     required this.onClearImage,
@@ -1503,8 +1499,6 @@ class _InputBar extends StatelessWidget {
   final bool isEditing;
   final VoidCallback onCancelEdit;
   final ExternalToolsService externalToolsService;
-  final bool webSearchMode;
-  final VoidCallback onToggleWebSearch;
   final VoidCallback onImageUpload;
   final String? uploadedImagePath;
   final VoidCallback onClearImage;
@@ -1601,11 +1595,9 @@ class _InputBar extends StatelessWidget {
                           ? 'AhamAI is responding...' 
                           : externalToolsService.isExecuting
                               ? 'External tool is running...'
-                              : webSearchMode
-                                  ? 'Web search mode - Ask me anything...'
-                                  : uploadedImagePath != null
-                                      ? 'Image uploaded - Describe or ask about it...'
-                                      : 'Message AhamAI (images, web search, screenshots, vision)...',
+                              : uploadedImagePath != null
+                                  ? 'Image uploaded - Describe or ask about it...'
+                                  : 'Message AhamAI (images, web search, screenshots, vision)...',
                       hintStyle: const TextStyle(
                         color: Color(0xFFA3A3A3),
                         fontSize: 16,
@@ -1664,19 +1656,7 @@ class _InputBar extends StatelessWidget {
                   Row(
                     children: [
 
-                        
-                                                 // Web Search Icon - clean design
-                         _AnimatedModeIcon(
-                           isActive: webSearchMode,
-                           icon: Icons.search,
-                           label: 'Search',
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            onToggleWebSearch();
-                          },
-                        ),
-                        
-                        const SizedBox(width: 12),
+
                         
                         // Image Upload Icon - clean design
                         _AnimatedModeIcon(
