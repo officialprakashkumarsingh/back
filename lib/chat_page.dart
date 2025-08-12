@@ -238,6 +238,19 @@ class ChatPageState extends State<ChatPage> {
 
 Be helpful, conversational, and provide detailed explanations when needed. You can write code, explain concepts, help with problems, and engage in discussions on a wide variety of topics.
 
+📸 SCREENSHOT CAPABILITY:
+When users ask for screenshots of websites, you can generate them using this URL format:
+https://s.wordpress.com/mshots/v1/[URL_ENCODED_WEBSITE]?w=1920&h=1080
+
+Examples:
+- For google.com: https://s.wordpress.com/mshots/v1/https%3A%2F%2Fgoogle.com?w=1920&h=1080
+- For github.com: https://s.wordpress.com/mshots/v1/https%3A%2F%2Fgithub.com?w=1920&h=1080
+- For any site: https://s.wordpress.com/mshots/v1/[URL_ENCODED_SITE]?w=1920&h=1080
+
+Simply include the screenshot URL in your response using markdown image syntax: ![Screenshot Description](screenshot_url)
+
+The app will automatically render these images inline with your response.
+
 Always be polite, professional, and aim to provide the most useful response possible.'''
       };
 
@@ -289,19 +302,15 @@ Always be polite, professional, and aim to provide the most useful response poss
           }
         }
 
-        // Process completed message for tool calls
-        final processedMessage = await _processToolCalls(accumulatedText);
-        
         setState(() {
           _messages[botMessageIndex] = Message.bot(
-            processedMessage['text'],
+            accumulatedText,
             isStreaming: false,
-            toolData: processedMessage['toolData'],
           );
         });
 
         // Update memory with the completed conversation
-        _updateConversationMemory(prompt, processedMessage['text']);
+        _updateConversationMemory(prompt, accumulatedText);
 
         // Ensure UI scrolls to bottom after processing
         _scrollToBottom();
@@ -351,241 +360,7 @@ Always be polite, professional, and aim to provide the most useful response poss
     }
   }
 
-  /// Process tool calls in AI response and execute them
-  Future<Map<String, dynamic>> _processToolCalls(String responseText) async {
-    Map<String, dynamic> toolData = {};
-    String processedText = responseText;
-    
-    // Enhanced patterns for more robust JSON tool detection
-    final singleJsonPattern = RegExp(r'```json\s*(\{[^`]*?["\x27]tool_use["\x27]\s*:\s*true[^`]*?\})\s*```', dotAll: true, multiLine: true);
-    
-    // Look for parallel tool calls (array of tool calls)
-    final parallelJsonPattern = RegExp(r'```json\s*(\[[^`]*?["\x27]tool_use["\x27]\s*:\s*true[^`]*?\])\s*```', dotAll: true, multiLine: true);
-    
-    // Also look for tool calls without explicit tool_use flag
-    final implicitToolPattern = RegExp(r'```json\s*(\{[^`]*?["\x27]tool_name["\x27]\s*:\s*["\x27][^"\x27]+["\x27][^`]*?\})\s*```', dotAll: true, multiLine: true);
-    final implicitParallelPattern = RegExp(r'```json\s*(\[[^`]*?["\x27]tool_name["\x27]\s*:\s*["\x27][^"\x27]+["\x27][^`]*?\])\s*```', dotAll: true, multiLine: true);
-    
-    final singleMatches = singleJsonPattern.allMatches(responseText);
-    final parallelMatches = parallelJsonPattern.allMatches(responseText);
-    final implicitSingleMatches = implicitToolPattern.allMatches(responseText);
-    final implicitParallelMatches = implicitParallelPattern.allMatches(responseText);
-    
-    // Handle parallel tool calls first
-    for (final match in [...parallelMatches, ...implicitParallelMatches]) {
-      try {
-        final jsonStr = match.group(1);
-        if (jsonStr != null) {
-          final toolCalls = json.decode(jsonStr) as List;
-          final validToolCalls = toolCalls.where((call) => 
-            call is Map<String, dynamic> && 
-            (call['tool_use'] == true || call['tool_name'] != null) &&
-            call['tool_name'] != null
-          ).cast<Map<String, dynamic>>().toList();
-          
-          // Add tool_use flag for implicit calls
-          for (final call in validToolCalls) {
-            call['tool_use'] = true;
-          }
-          
-          if (validToolCalls.isNotEmpty) {
-            // Execute tools in parallel
-            final results = await _externalToolsService.executeToolsParallel(validToolCalls);
-            toolData.addAll(results);
-            
-            // Build combined result text
-            String combinedResultText = '**🔧 Parallel Tools Executed**\n\n';
-            for (final call in validToolCalls) {
-              final toolName = call['tool_name'] as String;
-              final result = results[toolName];
-              combinedResultText += _formatToolResult(toolName, result ?? {}) + '\n\n';
-            }
-            
-            processedText = processedText.replaceAll(match.group(0)!, combinedResultText.trim());
-          }
-        }
-      } catch (e) {
-        debugPrint('Parallel tool call JSON parsing error: $e');
-      }
-    }
-    
-    // Handle single tool calls
-    for (final match in [...singleMatches, ...implicitSingleMatches]) {
-      try {
-        final jsonStr = match.group(1);
-        if (jsonStr != null) {
-          final toolCall = json.decode(jsonStr);
-          
-          if ((toolCall['tool_use'] == true || toolCall['tool_name'] != null) && toolCall['tool_name'] != null) {
-            final toolName = toolCall['tool_name'] as String;
-            final parameters = toolCall['parameters'] as Map<String, dynamic>? ?? {};
-            
-            // Ensure tool_use flag is set
-            toolCall['tool_use'] = true;
-            
-            // Execute the tool
-            final result = await _externalToolsService.executeTool(toolName, parameters);
-            toolData[toolName] = result;
-            
-            // Replace the JSON block with the tool execution result
-            String resultText = _formatToolResult(toolName, result);
-            processedText = processedText.replaceAll(match.group(0)!, resultText);
-          }
-        }
-      } catch (e) {
-        // If JSON parsing fails, leave the original text
-        debugPrint('Tool call JSON parsing error: $e');
-      }
-    }
-    
-    return {
-      'text': processedText,
-      'toolData': toolData,
-    };
-  }
 
-  /// Format tool execution result for display
-  String _formatToolResult(String toolName, Map<String, dynamic> result) {
-    if (result['success'] == true) {
-      switch (toolName) {
-        case 'screenshot':
-          // Handle multiple screenshots if they exist
-          if (result.containsKey('screenshots') && result['screenshots'] is List) {
-            final screenshots = result['screenshots'] as List;
-            String screenshotImages = '';
-            for (int i = 0; i < screenshots.length; i++) {
-              final shot = screenshots[i] as Map;
-              screenshotImages += '![Screenshot ${i + 1}](${shot['preview_url']})\n\n';
-            }
-            return '''**🖼️ Multiple Screenshots Captured Successfully**
-
-$screenshotImages**Service:** ${result['service']}
-
-✅ All screenshots captured and available for viewing!''';
-          } else {
-            return '''**🖼️ Screenshot Tool Executed Successfully**
-
-**URL:** ${result['url']}
-**Dimensions:** ${result['width']}x${result['height']}
-**Service:** ${result['service']}
-
-![Screenshot](${result['preview_url']})
-
-✅ Screenshot captured and available for viewing!''';
-          }
-
-        case 'fetch_ai_models':
-          final models = result['models'] as List;
-          final modelsList = models.take(10).join(', ');
-          return '''**🤖 AI Models Fetched Successfully**
-
-**Available Models:** ${result['total_count']} models found
-**Sample Models:** $modelsList${models.length > 10 ? '...' : ''}
-**API Status:** ${result['api_status']}
-
-✅ Models list retrieved successfully!''';
-
-        case 'switch_ai_model':
-          return '''**🔄 AI Model Switch Executed**
-
-**New Model:** ${result['new_model']}
-**Reason:** ${result['reason']}
-**Validation:** ${result['validation']}
-**Status:** ${result['action_completed']}
-
-✅ Model switch completed successfully!''';
-
-        case 'generate_image':
-          return '''**🎨 Image Generated Successfully**
-
-**Prompt:** ${result['original_prompt'] ?? result['prompt'] ?? 'N/A'}
-**Model:** ${result['model']}
-**Dimensions:** ${result['width']}x${result['height']}
-**Image Size:** ${(result['image_size'] as int? ?? 0) ~/ 1024}KB
-**Unique Seed:** ${result['seed']}
-
-![Generated Image](${result['image_url']})
-
-✅ Image generated successfully using ${result['model']} model with unique identifier!''';
-
-        case 'fetch_image_models':
-          final models = result['model_names'] as List;
-          final modelsList = models.take(5).join(', ');
-          return '''**🎨 Image Models Fetched Successfully**
-
-**Available Models:** ${result['total_count']} models found
-**Sample Models:** $modelsList${models.length > 5 ? '...' : ''}
-**API Status:** ${result['api_status']}
-
-✅ Image models list retrieved successfully!''';
-
-        case 'web_search':
-          final results = result['results'] as List;
-          String resultsList = '';
-          for (int i = 0; i < results.length && i < 5; i++) {
-            final res = results[i] as Map<String, dynamic>;
-            final source = res['source']?.toString() ?? '';
-            final type = res['type']?.toString() ?? '';
-            String icon = '🔍';
-            if (source.contains('Wikipedia')) icon = '📖';
-            else if (type == 'definition') icon = '📚';
-            else if (type == 'primary') icon = '⭐';
-            
-            resultsList += '$icon **${res['title']}** ($source)\n';
-            resultsList += '   ${res['snippet']}\n';
-            if (res['url']?.toString().isNotEmpty == true) {
-              resultsList += '   🔗 [Read more](${res['url']})\n';
-            }
-            resultsList += '\n';
-          }
-          
-          final searchDetails = result['search_details'] as Map<String, dynamic>? ?? {};
-          return '''**🔍 Enhanced Web Search Completed Successfully**
-
-**Query:** ${result['query']}
-**Source:** ${result['source']}
-**Deep Search:** ${result['deep_search'] == true ? 'Enabled' : 'Disabled'}
-
-**Search Results:**
-$resultsList
-
-**Result Distribution:**
-- Wikipedia: ${searchDetails['wikipedia_results'] ?? 0} results
-- DuckDuckGo: ${searchDetails['duckduckgo_results'] ?? 0} results
-- Total Found: ${result['total_found']}
-
-✅ Enhanced web search completed successfully!''';
-
-        case 'screenshot_vision':
-          return '''**👁️ Screenshot Vision Analysis Completed**
-
-**Question:** ${result['question']}
-**Model:** ${result['model']}
-**Analysis:** ${result['answer']}
-
-          ✅ Screenshot analyzed successfully using vision AI!''';
-
-        case 'mermaid_chart':
-          return '''**📊 Mermaid Chart Generated**
-
-**Format:** ${result['format']}
-
-![Diagram](${result['image_url']})
-
-✅ Diagram generated successfully!''';
-
-
-        default:
-          return '''**🛠️ Tool Executed: $toolName**
-
-✅ ${result['description'] ?? 'Tool executed successfully'}''';
-      }
-    } else {
-      return '''**❌ Tool Execution Failed: $toolName**
-
-Error: ${result['error']}''';
-    }
-  }
 
   void _regenerateResponse(int botMessageIndex) {
     int userMessageIndex = botMessageIndex - 1;
@@ -931,71 +706,7 @@ Error: ${result['error']}''';
                 ],
               ),
             ),
-          // Enhanced external tools status with better design
-          if (_externalToolsService.isExecuting)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEAE9E5),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFD1D1D1), width: 1),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 20,
-                        height: 20,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF000000),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _externalToolsService.currentlyExecutingTools.length > 1
-                              ? 'Executing ${_externalToolsService.currentlyExecutingTools.length} tools in parallel'
-                              : 'Using external tool',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF000000),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (_externalToolsService.currentlyExecutingTools.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: _externalToolsService.currentlyExecutingTools.map((tool) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF000000),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            tool,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFFFFFFFF),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+
                         SafeArea(
             top: false,
             left: false,
@@ -1007,7 +718,7 @@ Error: ${result['error']}''';
               awaitingReply: _awaitingReply,
               isEditing: _editingMessageId != null,
               onCancelEdit: _cancelEditing,
-              externalToolsService: _externalToolsService,
+
               onImageUpload: _handleImageUpload,
               uploadedImagePath: _uploadedImagePath,
               onClearImage: _clearUploadedImage,
@@ -2323,14 +2034,7 @@ class _MessageContentWithInlineCode extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    // Debug: Check if this message has the duplication issue
-    if (message.text == "Hi, I'm AhamAI. Ask me anything!") {
-      print('🐛 DEBUG: Rendering greeting message');
-      print('  text: "${message.text}"');
-      print('  displayText: "${message.displayText}"');
-      print('  codes.length: ${message.codes.length}');
-      print('  isStreaming: ${message.isStreaming}');
-    }
+
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

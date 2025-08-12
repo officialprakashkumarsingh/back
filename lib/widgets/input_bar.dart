@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../external_tools_service.dart';
 
 /* ----------------------------------------------------------
    INPUT BAR - The main input interface for sending messages
@@ -14,7 +13,7 @@ class InputBar extends StatelessWidget {
     required this.awaitingReply,
     required this.isEditing,
     required this.onCancelEdit,
-    required this.externalToolsService,
+
     required this.onImageUpload,
     this.uploadedImagePath,
     required this.onClearImage,
@@ -26,7 +25,7 @@ class InputBar extends StatelessWidget {
   final bool awaitingReply;
   final bool isEditing;
   final VoidCallback onCancelEdit;
-  final ExternalToolsService externalToolsService;
+
   final VoidCallback onImageUpload;
   final String? uploadedImagePath;
   final VoidCallback onClearImage;
@@ -121,11 +120,9 @@ class InputBar extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: awaitingReply 
                           ? 'Send message to queue while AI responds...' 
-                          : externalToolsService.isExecuting
-                              ? 'External tool is running...'
-                              : uploadedImagePath != null
-                                  ? 'Image uploaded - Describe or ask about it...'
-                                  : 'Ask AhamAI',
+                          : uploadedImagePath != null
+                              ? 'Image uploaded - Describe or ask about it...'
+                              : 'Ask AhamAI',
                       suffixIcon: IconButton(
                         icon: Icon(
                           uploadedImagePath != null ? Icons.close : Icons.attach_file,
