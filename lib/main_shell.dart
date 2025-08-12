@@ -475,14 +475,6 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
-                  Text(
-                    'Menu',
-                    style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF000000),
-                    ),
-                  ),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -494,58 +486,33 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
             
             const SizedBox(height: 16),
             
-            // Characters option
+            // Characters option with animated background
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              child: Material(
-                color: const Color(0xFFEAE9E5),
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) =>
-                            CharactersPage(selectedModel: _selectedModel),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(1.0, 0.0),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeOutCubic,
-                            )),
-                            child: child,
-                          );
-                        },
-                        transitionDuration: const Duration(milliseconds: 300),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.groups_rounded, color: Color(0xFF000000), size: 22),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Text(
-                            'Characters',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF000000),
-                            ),
-                          ),
-                        ),
-                        const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFA3A3A3), size: 16),
-                      ],
+              child: _AnimatedCharactersCard(
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          CharactersPage(selectedModel: _selectedModel),
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(1.0, 0.0),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          )),
+                          child: child,
+                        );
+                      },
+                      transitionDuration: const Duration(milliseconds: 300),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
             
@@ -807,6 +774,162 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+}
+
+/* ----------------------------------------------------------
+   ANIMATED CHARACTERS CARD
+---------------------------------------------------------- */
+class _AnimatedCharactersCard extends StatefulWidget {
+  final VoidCallback onTap;
+  
+  const _AnimatedCharactersCard({required this.onTap});
+  
+  @override
+  State<_AnimatedCharactersCard> createState() => _AnimatedCharactersCardState();
+}
+
+class _AnimatedCharactersCardState extends State<_AnimatedCharactersCard>
+    with TickerProviderStateMixin {
+  late AnimationController _controller;
+  late AnimationController _floatingController;
+  late Animation<double> _scaleAnimation;
+  late List<Animation<Offset>> _floatingAnimations;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    // Main scale animation
+    _controller = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.05,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+    
+    // Floating elements animation
+    _floatingController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    )..repeat();
+    
+    // Create multiple floating animations for different elements
+    _floatingAnimations = List.generate(6, (index) {
+      return Tween<Offset>(
+        begin: Offset(0.1 * index, 0.1 * index),
+        end: Offset(0.1 * index + 0.2, 0.1 * index + 0.3),
+      ).animate(CurvedAnimation(
+        parent: _floatingController,
+        curve: Interval(
+          index * 0.1,
+          (index * 0.1) + 0.8,
+          curve: Curves.easeInOut,
+        ),
+      ));
+    });
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    _floatingController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_controller, _floatingController]),
+      builder: (context, child) {
+        return Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              height: 60,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEAE9E5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Stack(
+                children: [
+                  // Animated background elements
+                  ...List.generate(6, (index) {
+                    return Positioned(
+                      left: 20.0 + (_floatingAnimations[index].value.dx * 100),
+                      top: 5.0 + (_floatingAnimations[index].value.dy * 20),
+                      child: Transform.scale(
+                        scale: _scaleAnimation.value * (0.3 + index * 0.1),
+                        child: Container(
+                          width: 8 + (index * 2).toDouble(),
+                          height: 8 + (index * 2).toDouble(),
+                          decoration: BoxDecoration(
+                            color: _getElementColor(index),
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  
+                  // Main content
+                  Row(
+                    children: [
+                      Transform.scale(
+                        scale: _scaleAnimation.value,
+                        child: const Icon(
+                          Icons.groups_rounded,
+                          color: Color(0xFF000000),
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Text(
+                          'Characters',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF000000),
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: Color(0xFFA3A3A3),
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
+  Color _getElementColor(int index) {
+    final colors = [
+      const Color(0xFFD0CFCB).withOpacity(0.3),
+      const Color(0xFFA3A3A3).withOpacity(0.2),
+      const Color(0xFF000000).withOpacity(0.1),
+      const Color(0xFFD0CFCB).withOpacity(0.4),
+      const Color(0xFFA3A3A3).withOpacity(0.3),
+      const Color(0xFF000000).withOpacity(0.15),
+    ];
+    return colors[index % colors.length];
   }
 }
 
