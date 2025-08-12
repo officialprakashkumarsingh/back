@@ -14,6 +14,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'models.dart';
 import 'character_service.dart';
 import 'external_tools_service.dart';
+import 'message_queue.dart';
 
 /* ----------------------------------------------------------
    CHAT PAGE
@@ -44,6 +45,10 @@ class ChatPageState extends State<ChatPage> {
   // Add memory system for general chat
   final List<String> _conversationMemory = [];
   static const int _maxMemorySize = 10;
+
+  // Queue panel state
+  bool _showQueuePanel = false;
+  final MessageQueue _messageQueue = MessageQueue();
 
   http.Client? _httpClient;
   final CharacterService _characterService = CharacterService();
@@ -401,6 +406,8 @@ Be conversational and helpful!'''
             if (mounted) _clearUploadedImage();
           });
         }
+        // Process next message in queue if available
+        _processNextQueuedMessage();
       }
     }
   }
@@ -661,7 +668,31 @@ Error: ${result['error']}''';
         }
         _awaitingReply = false;
       });
+      // Process next message in queue if available
+      _processNextQueuedMessage();
     }
+  }
+
+  void _processNextQueuedMessage() {
+    if (!_awaitingReply && _messageQueue.hasMessages) {
+      final nextMessage = _messageQueue.getNextMessage();
+      if (nextMessage != null) {
+        // Add small delay to make the flow feel natural
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted && !_awaitingReply) {
+            _sendMessageDirectly(nextMessage);
+          }
+        });
+      }
+    }
+  }
+
+  void _sendMessageDirectly(String messageText) {
+    setState(() {
+      _messages.add(Message.user(messageText));
+    });
+    _generateResponse(messageText);
+    _scrollToBottom();
   }
 
   void startNewChat() {
@@ -693,7 +724,18 @@ Error: ${result['error']}''';
 
   Future<void> _send({String? text}) async {
     final messageText = text ?? _controller.text.trim();
-    if (messageText.isEmpty || _awaitingReply) return;
+    if (messageText.isEmpty) return;
+
+    // If AI is currently responding, add to queue instead
+    if (_awaitingReply) {
+      _messageQueue.addMessage(messageText);
+      _controller.clear();
+      setState(() {
+        _showQueuePanel = true;
+      });
+      HapticFeedback.lightImpact();
+      return;
+    }
 
     final isEditing = _editingMessageId != null;
     if (isEditing) {
@@ -888,26 +930,28 @@ Error: ${result['error']}''';
   @override
   Widget build(BuildContext context) {
     final emptyChat = _messages.length <= 1;
-    return Container(
-      color: const Color(0xFFF4F3F0),
-      child: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scroll,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              itemCount: _messages.length,
-              itemBuilder: (_, index) {
-                final message = _messages[index];
-                return _MessageBubble(
-                  key: ValueKey(message.id),
-                  message: message,
-                  onRegenerate: () => _regenerateResponse(index),
-                  onUserMessageTap: () => _showUserMessageOptions(context, message),
-                );
-              },
-            ),
-          ),
+    return Stack(
+      children: [
+        Container(
+          color: const Color(0xFFF4F3F0),
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  controller: _scroll,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  itemCount: _messages.length,
+                  itemBuilder: (_, index) {
+                    final message = _messages[index];
+                    return _MessageBubble(
+                      key: ValueKey(message.id),
+                      message: message,
+                      onRegenerate: () => _regenerateResponse(index),
+                      onUserMessageTap: () => _showUserMessageOptions(context, message),
+                    );
+                  },
+                ),
+              ),
           if (emptyChat && _editingMessageId == null)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -1030,8 +1074,88 @@ Error: ${result['error']}''';
               onClearImage: _clearUploadedImage,
             ),
           ),
-        ],
-      ),
+            ],
+          ),
+        ),
+        // Queue Panel
+        Positioned(
+          top: 50,
+          right: 0,
+          child: QueuePanel(
+            isVisible: _showQueuePanel && _messageQueue.hasMessages,
+            onDismiss: () {
+              setState(() {
+                _showQueuePanel = false;
+              });
+            },
+          ),
+        ),
+        // Queue Button (shows when there are queued messages but panel is hidden)
+        if (_messageQueue.hasMessages && !_showQueuePanel)
+          Positioned(
+            top: 60,
+            right: 20,
+            child: ValueListenableBuilder<List<String>>(
+              valueListenable: _messageQueue.queueNotifier,
+              builder: (context, messages, child) {
+                if (messages.isEmpty) return const SizedBox.shrink();
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _showQueuePanel = true;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF000000),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFFFFF),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${messages.length}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF000000),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Queue',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFFFFFFFF),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
     );
   }
 }
@@ -1579,7 +1703,7 @@ class _InputBar extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: controller,
-                    enabled: !awaitingReply,
+                    enabled: true, // Keep input active during streaming for queue
                     maxLines: 3, // Reduced from 6
                     minLines: 1, // Reduced from 3
                     textCapitalization: TextCapitalization.sentences,
@@ -1593,7 +1717,7 @@ class _InputBar extends StatelessWidget {
                     ),
                     decoration: InputDecoration(
                       hintText: awaitingReply 
-                          ? 'AhamAI is responding...' 
+                          ? 'Send message to queue while AI responds...' 
                           : externalToolsService.isExecuting
                               ? 'External tool is running...'
                               : uploadedImagePath != null
@@ -1636,23 +1760,45 @@ class _InputBar extends StatelessWidget {
                 // Send/Stop button
                 Padding(
                   padding: const EdgeInsets.only(right: 12, bottom: 6), // Adjusted padding
-                  child: GestureDetector(
-                    onTap: awaitingReply ? onStop : onSend,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(10), // Smaller padding
-                      decoration: BoxDecoration(
-                        color: awaitingReply 
-                            ? Colors.red.withOpacity(0.1)
-                            : const Color(0xFF000000),
-                        borderRadius: BorderRadius.circular(12), // Smaller radius
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Stop button (when awaiting reply)
+                      if (awaitingReply)
+                        GestureDetector(
+                          onTap: onStop,
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.stop_circle,
+                              color: Colors.red,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      // Send button (always visible)
+                      GestureDetector(
+                        onTap: onSend,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF000000),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            awaitingReply ? Icons.queue : Icons.arrow_upward_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
                       ),
-                      child: Icon(
-                        awaitingReply ? Icons.stop_circle : Icons.arrow_upward_rounded,
-                        color: awaitingReply ? Colors.red : Colors.white,
-                        size: 18, // Smaller icon
-                      ),
-                    ),
+                    ],
                   ),
                 ),
               ],
