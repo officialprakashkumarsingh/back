@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 import 'chat_page.dart';
 import 'characters_page.dart';
@@ -723,8 +723,8 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
                 width: 36,
                 height: 36,
                 child: const Center(
-                  child: FaIcon(
-                    FontAwesomeIcons.bars,
+                  child: Icon(
+                    Icons.menu,
                     color: Color(0xFF000000),
                     size: 20,
                   ),
@@ -756,8 +756,8 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
                       });
                     },
                     borderRadius: BorderRadius.circular(21),
-                    child: FaIcon(
-                      FontAwesomeIcons.mask,
+                    child: Icon(
+                      Icons.visibility_off,
                       color: _isTemporaryChatMode ? const Color(0xFF000000) : const Color(0xFFA3A3A3),
                       size: 22,
                     ),
@@ -786,8 +786,8 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
                       _saveAndStartNewChat();
                     },
                     borderRadius: BorderRadius.circular(21),
-                    child: const FaIcon(
-                      FontAwesomeIcons.commentDots,
+                    child: const Icon(
+                      Icons.chat_bubble_outline,
                       color: Color(0xFFA3A3A3),
                       size: 22,
                     ),

@@ -8,7 +8,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import 'package:flutter_svg/flutter_svg.dart';
 import 'models.dart';
 import 'character_service.dart';
@@ -1666,7 +1666,7 @@ class _InputBar extends StatelessWidget {
                                                  // Web Search Icon - clean design
                          _AnimatedModeIcon(
                            isActive: webSearchMode,
-                           icon: FontAwesomeIcons.search,
+                           icon: Icons.search,
                            label: 'Search',
                           onTap: () {
                             HapticFeedback.lightImpact();
@@ -1680,8 +1680,8 @@ class _InputBar extends StatelessWidget {
                         _AnimatedModeIcon(
                           isActive: uploadedImagePath != null,
                           icon: uploadedImagePath != null 
-                              ? FontAwesomeIcons.times
-                              : FontAwesomeIcons.camera,
+                              ? Icons.close
+                              : Icons.camera_alt,
                           label: 'Image',
                           onTap: () {
                             HapticFeedback.lightImpact();
@@ -2452,7 +2452,7 @@ class _AnimatedModeIconState extends State<_AnimatedModeIcon>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
-                      child: FaIcon(
+                      child: Icon(
                         widget.icon,
                         color: widget.isActive 
                             ? const Color(0xFF6366F1)
