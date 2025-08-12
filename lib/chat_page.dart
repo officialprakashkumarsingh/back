@@ -48,8 +48,8 @@ class ChatPageState extends State<ChatPage> {
   final List<String> _conversationMemory = [];
   static const int _maxMemorySize = 10;
 
-  // Queue panel state
-  bool _showQueuePanel = false;
+  // Queue panel state - true means compact, false means expanded
+  bool _showQueuePanel = true; // Default to compact view
   final MessageQueue _messageQueue = MessageQueue();
   
 
@@ -691,16 +691,16 @@ class ChatPageState extends State<ChatPage> {
           right: 0,
           left: 0,
           child: QueuePanel(
-            isVisible: _showQueuePanel && _messageQueue.hasMessages,
+            isVisible: !_showQueuePanel && _messageQueue.hasMessages,
             onDismiss: () {
               setState(() {
-                _showQueuePanel = false;
+                _showQueuePanel = true; // Back to compact view
               });
             },
           ),
         ),
-        // Queue Button (shows when there are queued messages but panel is hidden)
-        if (_messageQueue.hasMessages && !_showQueuePanel)
+        // Queue Button (shows when there are queued messages - compact view)
+        if (_messageQueue.hasMessages && _showQueuePanel)
           Positioned(
             bottom: 110, // Just above the input area
             right: 20,
@@ -711,7 +711,7 @@ class ChatPageState extends State<ChatPage> {
                 return GestureDetector(
                   onTap: () {
                     setState(() {
-                      _showQueuePanel = true;
+                      _showQueuePanel = false; // Show expanded panel
                     });
                   },
                   child: Container(
