@@ -81,8 +81,10 @@ class Message {
     final newText = text ?? this.text;
     final newDisplayText = displayText ?? (text != null ? null : this.displayText);
     
-    if (text != null && displayText == null) {
-      // Re-parse content if text changed but displayText wasn't explicitly provided
+    // Only re-parse content if text changed AND we're not in streaming mode
+    // This prevents duplication during streaming updates
+    if (text != null && displayText == null && !(isStreaming ?? this.isStreaming)) {
+      // Re-parse content only if text changed and not streaming
       final result = _parseContent(newText);
       return Message(
         id: id ?? this.id,

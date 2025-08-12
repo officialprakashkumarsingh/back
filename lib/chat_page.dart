@@ -337,9 +337,12 @@ Be conversational and helpful!'''
               if (content != null) {
                 accumulatedText += _fixServerEncoding(content);
                 setState(() {
-                  _messages[botMessageIndex] = botMessage.copyWith(
+                  // Update only text during streaming, keep original structure
+                  _messages[botMessageIndex] = _messages[botMessageIndex].copyWith(
                     text: accumulatedText,
                     isStreaming: true,
+                    // Preserve original displayText and codes during streaming
+                    displayText: accumulatedText,
                   );
                 });
                 _scrollToBottom();
