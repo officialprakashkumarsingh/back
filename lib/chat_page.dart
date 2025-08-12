@@ -2481,3 +2481,415 @@ class _AnimatedModeIconState extends State<_AnimatedModeIcon>
     );
   }
 }
+
+/* ----------------------------------------------------------
+   MESSAGE CONTENT WITH INLINE CODE - Renders message with inline code panels
+---------------------------------------------------------- */
+class _MessageContentWithInlineCode extends StatelessWidget {
+  final Message message;
+  
+  const _MessageContentWithInlineCode({required this.message});
+  
+  Widget _buildImageWidget(String url) {
+    try {
+      Widget image;
+      if (url.startsWith('data:image')) {
+        final commaIndex = url.indexOf(',');
+        final header = url.substring(5, commaIndex);
+        final mime = header.split(';').first;
+        final base64Data = url.substring(commaIndex + 1);
+        final bytes = base64Decode(base64Data);
+        if (mime == 'image/svg+xml') {
+          image = SvgPicture.memory(bytes, fit: BoxFit.contain);
+        } else {
+          image = Image.memory(bytes, fit: BoxFit.contain);
+        }
+      } else {
+        if (url.toLowerCase().endsWith('.svg')) {
+          image = SvgPicture.network(
+            url,
+            fit: BoxFit.contain,
+            placeholderBuilder: (context) =>
+                const Center(child: CircularProgressIndicator()),
+          );
+        } else {
+          image = Image.network(url, fit: BoxFit.contain);
+        }
+      }
+
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 300, maxWidth: double.infinity),
+          child: image,
+        ),
+      );
+    } catch (_) {
+      return Container(
+        height: 200,
+        alignment: Alignment.center,
+        child: const Icon(Icons.image_not_supported, color: Colors.grey),
+      );
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    // Parse the original message text to find code blocks and text segments
+    final segments = _parseMessageIntoSegments(message.text);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: segments.map((segment) {
+        if (segment is TextSegment) {
+          return MarkdownBody(
+            data: segment.text,
+            imageBuilder: (uri, title, alt) => _buildImageWidget(uri.toString()),
+            styleSheet: MarkdownStyleSheet(
+              p: const TextStyle(
+                fontSize: 15, 
+                height: 1.5, 
+                color: Color(0xFF000000),
+                fontWeight: FontWeight.w400,
+              ),
+              code: TextStyle(
+                backgroundColor: const Color(0xFFEAE9E5),
+                color: const Color(0xFF000000),
+                fontFamily: 'SF Mono',
+                fontSize: 14,
+              ),
+              codeblockDecoration: BoxDecoration(
+                color: const Color(0xFFEAE9E5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              h1: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+              h2: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+              h3: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+              listBullet: const TextStyle(color: Color(0xFFA3A3A3)),
+              blockquote: const TextStyle(color: Color(0xFFA3A3A3)),
+              strong: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+              em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
+            ),
+          );
+        } else if (segment is CodeSegment) {
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: _InlineCodePanel(codeContent: segment.codeContent),
+          );
+        }
+        return const SizedBox.shrink();
+      }).toList(),
+    );
+  }
+}
+
+/* ----------------------------------------------------------
+   INLINE CODE PANEL - Code panel that appears within message content
+---------------------------------------------------------- */
+class _InlineCodePanel extends StatefulWidget {
+  final CodeContent codeContent;
+  
+  const _InlineCodePanel({required this.codeContent});
+  
+  @override
+  State<_InlineCodePanel> createState() => _InlineCodePanelState();
+}
+
+class _InlineCodePanelState extends State<_InlineCodePanel> {
+  bool _isExpanded = true; // Start expanded for inline display
+  
+  void _copyCode(String code) {
+    Clipboard.setData(ClipboardData(text: code));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          '📋 Code copied to clipboard!',
+          style: TextStyle(
+            color: Color(0xFF000000),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        elevation: 4,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+  
+  void _toggleExpansion() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F3F0),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with toggle button
+          InkWell(
+            onTap: _toggleExpansion,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.code_rounded,
+                    size: 16,
+                    color: const Color(0xFF000000),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _isExpanded 
+                          ? widget.codeContent.language.toUpperCase()
+                          : '${widget.codeContent.language.toUpperCase()} - ${widget.codeContent.code.length > 50 ? "${widget.codeContent.code.substring(0, 50)}..." : widget.codeContent.code}',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: const Color(0xFFA3A3A3),
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: _isExpanded ? 1 : 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => _copyCode(widget.codeContent.code),
+                    icon: const Icon(
+                      Icons.copy_rounded,
+                      size: 16,
+                      color: Color(0xFF000000),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 18,
+                      color: const Color(0xFF000000),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Expandable content
+          if (_isExpanded)
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAE9E5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header with language and copy button
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF000000),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              widget.codeContent.extension.toUpperCase(),
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFFFFFFF),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            onPressed: () => _copyCode(widget.codeContent.code),
+                            icon: const Icon(
+                              Icons.copy_rounded,
+                              size: 16,
+                              color: Color(0xFF000000),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Code content
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.black87,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Text(
+                            widget.codeContent.code,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                              height: 1.4,
+                              color: Color(0xFFFFFFFF),
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/* ----------------------------------------------------------
+   MESSAGE SEGMENTS - Data classes for parsing message content
+---------------------------------------------------------- */
+abstract class MessageSegment {}
+
+class TextSegment extends MessageSegment {
+  final String text;
+  TextSegment(this.text);
+}
+
+class CodeSegment extends MessageSegment {
+  final CodeContent codeContent;
+  CodeSegment(this.codeContent);
+}
+
+/* ----------------------------------------------------------
+   MESSAGE PARSING - Utility function to parse message into segments
+---------------------------------------------------------- */
+List<MessageSegment> _parseMessageIntoSegments(String text) {
+  final segments = <MessageSegment>[];
+  
+  // Define patterns for different code languages
+  final codePatterns = {
+    'dart': RegExp(r'```(?:dart|flutter)\s*\n(.*?)\n```', dotAll: true),
+    'python': RegExp(r'```(?:python|py)\s*\n(.*?)\n```', dotAll: true),
+    'javascript': RegExp(r'```(?:javascript|js)\s*\n(.*?)\n```', dotAll: true),
+    'typescript': RegExp(r'```(?:typescript|ts)\s*\n(.*?)\n```', dotAll: true),
+    'java': RegExp(r'```java\s*\n(.*?)\n```', dotAll: true),
+    'cpp': RegExp(r'```(?:cpp|c\+\+|cxx)\s*\n(.*?)\n```', dotAll: true),
+    'c': RegExp(r'```c\s*\n(.*?)\n```', dotAll: true),
+    'rust': RegExp(r'```rust\s*\n(.*?)\n```', dotAll: true),
+    'go': RegExp(r'```go\s*\n(.*?)\n```', dotAll: true),
+    'html': RegExp(r'```html\s*\n(.*?)\n```', dotAll: true),
+    'css': RegExp(r'```css\s*\n(.*?)\n```', dotAll: true),
+    'json': RegExp(r'```json\s*\n(.*?)\n```', dotAll: true),
+    'xml': RegExp(r'```xml\s*\n(.*?)\n```', dotAll: true),
+    'yaml': RegExp(r'```(?:yaml|yml)\s*\n(.*?)\n```', dotAll: true),
+    'sql': RegExp(r'```sql\s*\n(.*?)\n```', dotAll: true),
+    'bash': RegExp(r'```(?:bash|sh|shell)\s*\n(.*?)\n```', dotAll: true),
+    'powershell': RegExp(r'```(?:powershell|ps1)\s*\n(.*?)\n```', dotAll: true),
+    'generic': RegExp(r'```(?:\w*\s*)?\n(.*?)\n```', dotAll: true),
+  };
+  
+  final languageExtensions = {
+    'dart': '.dart',
+    'python': '.py',
+    'javascript': '.js',
+    'typescript': '.ts',
+    'java': '.java',
+    'cpp': '.cpp',
+    'c': '.c',
+    'rust': '.rs',
+    'go': '.go',
+    'html': '.html',
+    'css': '.css',
+    'json': '.json',
+    'xml': '.xml',
+    'yaml': '.yaml',
+    'sql': '.sql',
+    'bash': '.sh',
+    'powershell': '.ps1',
+    'generic': '.txt',
+  };
+  
+  // Find all code blocks and their positions
+  final codeBlocks = <({int start, int end, CodeContent code})>[];
+  
+  for (String language in codePatterns.keys) {
+    final matches = codePatterns[language]!.allMatches(text);
+    for (final match in matches) {
+      final codeText = match.group(1)?.trim() ?? '';
+      if (codeText.isNotEmpty) {
+        codeBlocks.add((
+          start: match.start,
+          end: match.end,
+          code: CodeContent(
+            code: codeText,
+            language: language,
+            extension: languageExtensions[language] ?? '.txt',
+          ),
+        ));
+      }
+    }
+  }
+  
+  // Sort code blocks by position
+  codeBlocks.sort((a, b) => a.start.compareTo(b.start));
+  
+  // Split text into segments
+  int lastEnd = 0;
+  for (final block in codeBlocks) {
+    // Add text before this code block
+    if (block.start > lastEnd) {
+      final textContent = text.substring(lastEnd, block.start).trim();
+      if (textContent.isNotEmpty) {
+        segments.add(TextSegment(textContent));
+      }
+    }
+    
+    // Add the code block
+    segments.add(CodeSegment(block.code));
+    lastEnd = block.end;
+  }
+  
+  // Add remaining text after the last code block
+  if (lastEnd < text.length) {
+    final textContent = text.substring(lastEnd).trim();
+    if (textContent.isNotEmpty) {
+      segments.add(TextSegment(textContent));
+    }
+  }
+  
+  // If no code blocks found, treat entire text as one text segment
+  if (codeBlocks.isEmpty) {
+    segments.add(TextSegment(text));
+  }
+  
+  return segments;
+}
