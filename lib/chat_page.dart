@@ -53,7 +53,7 @@ class ChatPageState extends State<ChatPage> {
   final MessageQueue _messageQueue = MessageQueue();
   
   // Quick reply state
-  bool _showQuickReplies = false;
+  bool _quickRepliesVisible = false;
 
 
   final CharacterService _characterService = CharacterService();
@@ -775,7 +775,7 @@ class ChatPageState extends State<ChatPage> {
             conversationContext: _messages.map((m) => '${m.sender.name}: ${m.text}').take(5).join('\n'),
             selectedModel: widget.selectedModel,
             onSuggestionTapped: _handleQuickReply,
-            isVisible: _showQuickReplies,
+            isVisible: _quickRepliesVisible,
           ),
         ),
       ],
@@ -797,7 +797,7 @@ class ChatPageState extends State<ChatPage> {
   // Show quick replies
   void _showQuickReplies() {
     setState(() {
-      _showQuickReplies = true;
+      _quickRepliesVisible = true;
     });
   }
   
@@ -805,7 +805,7 @@ class ChatPageState extends State<ChatPage> {
   void _handleQuickReply(String reply) {
     _controller.text = reply;
     setState(() {
-      _showQuickReplies = false;
+      _quickRepliesVisible = false;
     });
     _send();
   }

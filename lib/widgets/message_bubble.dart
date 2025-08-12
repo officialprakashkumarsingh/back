@@ -634,7 +634,8 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
           // Message reactions for bot messages
           if (isBot && widget.onReaction != null)
             MessageReactions(
-              onReaction: widget.onReaction!,
+              onReactionSelected: widget.onReaction!,
+              onDismiss: () {}, // Empty callback for now
             ),
         ],
       ),
