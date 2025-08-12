@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models.dart';
@@ -136,27 +137,51 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
     _toggleActions();
   }
 
-  void _shareMessage(BuildContext context) {
+  void _shareMessage(BuildContext context) async {
     HapticFeedback.lightImpact();
-    // For now, copy to clipboard (can implement actual sharing later)
-    Clipboard.setData(ClipboardData(text: widget.message.text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-          '🔗 Message ready to share!',
-          style: TextStyle(
-            color: Color(0xFF000000),
-            fontWeight: FontWeight.w500,
+    try {
+      await Share.share(
+        widget.message.text,
+        subject: 'AI Response from AhamAI',
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            '📤 Message shared successfully!',
+            style: TextStyle(
+              color: Color(0xFF000000),
+              fontWeight: FontWeight.w500,
+            ),
           ),
+          backgroundColor: Colors.white,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+          elevation: 4,
+          duration: const Duration(seconds: 2),
         ),
-        backgroundColor: Colors.white,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-        elevation: 4,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+      );
+    } catch (e) {
+      // Fallback to clipboard if sharing fails
+      Clipboard.setData(ClipboardData(text: widget.message.text));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            '📋 Message copied to clipboard!',
+            style: TextStyle(
+              color: Color(0xFF000000),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+          elevation: 4,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
     // Hide actions after interaction
     _toggleActions();
   }
@@ -620,6 +645,13 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
                         icon: Icons.auto_fix_high,
                         onTap: () => _showModifyOptions(context),
                         tooltip: 'Modify response',
+                      ),
+                      const SizedBox(width: 8),
+                      // Share
+                      ActionButton(
+                        icon: Icons.share_rounded,
+                        onTap: () => _shareMessage(context),
+                        tooltip: 'Share response',
                       ),
                     ],
                   ),

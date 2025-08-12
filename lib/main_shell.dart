@@ -757,7 +757,7 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
                     },
                     borderRadius: BorderRadius.circular(21),
                     child: Icon(
-                      Icons.visibility_off,
+                      Icons.security_rounded,
                       color: _isTemporaryChatMode ? const Color(0xFF000000) : const Color(0xFFA3A3A3),
                       size: 22,
                     ),
@@ -787,7 +787,7 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
                     },
                     borderRadius: BorderRadius.circular(21),
                     child: const Icon(
-                      Icons.chat_bubble_outline,
+                      Icons.add_comment_rounded,
                       color: Color(0xFFA3A3A3),
                       size: 22,
                     ),
