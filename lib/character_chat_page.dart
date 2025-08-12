@@ -901,12 +901,6 @@ class _ThoughtsPanelState extends State<_ThoughtsPanel> with SingleTickerProvide
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.psychology_rounded,
-                    size: 16,
-                    color: const Color(0xFF000000),
-                  ),
-                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _isExpanded 
