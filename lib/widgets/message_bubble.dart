@@ -168,7 +168,7 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Color(0xFFF8F8F8),
+            color: Color(0xFFEAE9E5),
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -182,7 +182,7 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: const Color(0xFF000000).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -202,42 +202,42 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
                     const SizedBox(height: 16),
                     _buildModifyOption(
                       context,
-                      icon: Icons.expand_more,
+                      icon: Icons.unfold_more,
                       title: 'Expand Response',
                       subtitle: 'Make it more detailed and comprehensive',
                       onTap: () => _handleModifyOption(context, 'expand'),
                     ),
                     _buildModifyOption(
                       context,
-                      icon: Icons.compress,
+                      icon: Icons.unfold_less,
                       title: 'Shorten Response',
                       subtitle: 'Make it more concise and to the point',
                       onTap: () => _handleModifyOption(context, 'shorten'),
                     ),
                     _buildModifyOption(
                       context,
-                      icon: Icons.school,
+                      icon: Icons.lightbulb_outline,
                       title: 'Explain Simply',
                       subtitle: 'Use simpler language and examples',
                       onTap: () => _handleModifyOption(context, 'simplify'),
                     ),
                     _buildModifyOption(
                       context,
-                      icon: Icons.business,
+                      icon: Icons.work_outline,
                       title: 'Professional Tone',
                       subtitle: 'Make it more formal and professional',
                       onTap: () => _handleModifyOption(context, 'professional'),
                     ),
                     _buildModifyOption(
                       context,
-                      icon: Icons.sentiment_satisfied,
+                      icon: Icons.chat_bubble_outline,
                       title: 'Casual Tone',
                       subtitle: 'Make it more friendly and conversational',
                       onTap: () => _handleModifyOption(context, 'casual'),
                     ),
                     _buildModifyOption(
                       context,
-                      icon: Icons.format_list_bulleted,
+                      icon: Icons.list_alt,
                       title: 'Add Examples',
                       subtitle: 'Include practical examples and use cases',
                       onTap: () => _handleModifyOption(context, 'examples'),
@@ -267,21 +267,21 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFFF4F3F0),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
+          border: Border.all(color: const Color(0xFFD0CFCB), width: 0.5),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF000000).withOpacity(0.1),
+                color: const Color(0xFFEAE9E5),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
-                size: 20,
+                size: 18,
                 color: const Color(0xFF000000),
               ),
             ),
@@ -310,8 +310,8 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
             ),
             const Icon(
               Icons.arrow_forward_ios,
-              size: 16,
-              color: Color(0xFF999999),
+              size: 14,
+              color: Color(0xFF666666),
             ),
           ],
         ),
