@@ -2987,7 +2987,7 @@ class _HtmlPreviewDialogState extends State<_HtmlPreviewDialog> {
     content = content.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
     content = content.replaceAll(RegExp(r'<p[^>]*>', caseSensitive: false), '\n\n');
     content = content.replaceAll(RegExp(r'</p>', caseSensitive: false), '');
-    content = content.replaceAll(RegExp(r'<h[1-6][^>]*>(.*?)</h[1-6]>', caseSensitive: false), (match) {
+    content = content.replaceAllMapped(RegExp(r'<h[1-6][^>]*>(.*?)</h[1-6]>', caseSensitive: false), (match) {
       return '\n\n${match.group(1)?.toUpperCase() ?? ''}\n';
     });
     content = content.replaceAll(RegExp(r'<[^>]+>'), ''); // Remove remaining HTML tags
