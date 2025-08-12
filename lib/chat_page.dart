@@ -340,12 +340,13 @@ Be conversational and helpful!'''
               if (content != null) {
                 accumulatedText += _fixServerEncoding(content);
                 setState(() {
-                  // Update only text during streaming, keep original structure
+                  // Update only text during streaming, don't parse content yet
                   _messages[botMessageIndex] = _messages[botMessageIndex].copyWith(
                     text: accumulatedText,
                     isStreaming: true,
-                    // Preserve original displayText and codes during streaming
+                    // For streaming, use raw text as displayText and keep codes empty
                     displayText: accumulatedText,
+                    codes: [], // Clear codes during streaming to prevent duplication
                   );
                 });
                 _scrollToBottom();
@@ -2390,17 +2391,45 @@ class _MessageContentWithInlineCode extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    // Use displayText which has code blocks already removed, and add code panels separately
-    final segments = parseMessageIntoSegments(message.displayText);
-    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Render text segments (displayText with code blocks removed)
-        ...segments.map((segment) {
-          if (segment is TextSegment) {
-            return MarkdownBody(
-              data: segment.text,
+        // For streaming messages, just show the raw text
+        if (message.isStreaming) 
+          MarkdownBody(
+            data: message.displayText,
+            imageBuilder: (uri, title, alt) => _buildImageWidget(uri.toString()),
+            styleSheet: MarkdownStyleSheet(
+              p: const TextStyle(
+                fontSize: 15, 
+                height: 1.5, 
+                color: Color(0xFF000000),
+                fontWeight: FontWeight.w400,
+              ),
+              code: TextStyle(
+                backgroundColor: const Color(0xFFEAE9E5),
+                color: const Color(0xFF000000),
+                fontFamily: 'SF Mono',
+                fontSize: 14,
+              ),
+              codeblockDecoration: BoxDecoration(
+                color: const Color(0xFFEAE9E5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              h1: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+              h2: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+              h3: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+              listBullet: const TextStyle(color: Color(0xFFA3A3A3)),
+              blockquote: const TextStyle(color: Color(0xFFA3A3A3)),
+              strong: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+              em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
+            ),
+          )
+        else ...[
+          // For finished messages, use displayText (with code blocks removed) 
+          if (message.displayText.isNotEmpty)
+            MarkdownBody(
+              data: message.displayText,
               imageBuilder: (uri, title, alt) => _buildImageWidget(uri.toString()),
               styleSheet: MarkdownStyleSheet(
                 p: const TextStyle(
@@ -2427,15 +2456,13 @@ class _MessageContentWithInlineCode extends StatelessWidget {
                 strong: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
                 em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
               ),
-            );
-          }
-          return const SizedBox.shrink();
-        }),
-        // Add code panels from message.codes
-        ...message.codes.map((codeContent) => Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          child: _InlineCodePanel(codeContent: codeContent),
-        )),
+            ),
+          // Add code panels from message.codes (only for finished messages)
+          ...message.codes.map((codeContent) => Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: _InlineCodePanel(codeContent: codeContent),
+          )),
+        ],
       ],
     );
   }
