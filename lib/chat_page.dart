@@ -13,8 +13,8 @@ import 'widgets/input_bar.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/enhanced_code_block.dart';
 import 'widgets/custom_markdown_code_builder.dart';
-import 'widgets/quick_reply_suggestions.dart';
-import 'widgets/message_reactions.dart';
+
+
 import 'services/message_modifier_service.dart';
 import 'services/ai_chat_service.dart';
 
@@ -52,8 +52,7 @@ class ChatPageState extends State<ChatPage> {
   bool _showQueuePanel = false;
   final MessageQueue _messageQueue = MessageQueue();
   
-  // Quick reply state
-  bool _quickRepliesVisible = false;
+
 
 
   final CharacterService _characterService = CharacterService();
@@ -566,8 +565,8 @@ class ChatPageState extends State<ChatPage> {
                       onRegenerate: () => _regenerateResponse(index),
                       onUserMessageTap: () => _showUserMessageOptions(context, message),
                       onModifyResponse: (modifyType) => _modifyResponse(index, modifyType),
-                      onReaction: (emoji) => _handleReaction(index, emoji),
-                      onBotMessageTap: () => _showQuickReplies(),
+
+                      
                       messageContentBuilder: (message) {
                         if (message.sender == Sender.bot) {
                           // For bot messages, render with markdown and enhanced code blocks
@@ -765,50 +764,14 @@ class ChatPageState extends State<ChatPage> {
               },
             ),
           ),
-        // Quick Reply Suggestions positioned above input area
-        Positioned(
-          bottom: 160, // Above input area and queue panel
-          left: 0,
-          right: 0,
-          child: QuickReplySuggestions(
-            lastBotMessage: _messages.isNotEmpty && _messages.last.sender == Sender.bot ? _messages.last.text : null,
-            conversationContext: _messages.map((m) => '${m.sender.name}: ${m.text}').take(5).join('\n'),
-            selectedModel: widget.selectedModel,
-            onSuggestionTapped: _handleQuickReply,
-            isVisible: _quickRepliesVisible,
-          ),
-        ),
+
       ],
     );
   }
 
-  // Handle message reactions
-  void _handleReaction(int messageIndex, String emoji) {
-    HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Reacted with $emoji'),
-        duration: const Duration(milliseconds: 800),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
+
   
-  // Show quick replies
-  void _showQuickReplies() {
-    setState(() {
-      _quickRepliesVisible = true;
-    });
-  }
-  
-  // Handle quick reply selection
-  void _handleQuickReply(String reply) {
-    _controller.text = reply;
-    setState(() {
-      _quickRepliesVisible = false;
-    });
-    _send();
-  }
+
 }
 
 
