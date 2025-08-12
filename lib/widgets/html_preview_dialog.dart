@@ -65,7 +65,7 @@ class _HtmlPreviewDialogState extends State<HtmlPreviewDialog> {
     </style>
 </head>
 <body>
-\${widget.htmlContent}
+${widget.htmlContent}
 </body>
 </html>
     ''';

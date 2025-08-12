@@ -15,6 +15,8 @@ import 'models.dart';
 import 'character_service.dart';
 import 'external_tools_service.dart';
 import 'message_queue.dart';
+import 'utils/message_parsing.dart';
+import 'widgets/html_preview_dialog.dart';
 
 /* ----------------------------------------------------------
    CHAT PAGE
@@ -2658,7 +2660,7 @@ class _MessageContentWithInlineCode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Use displayText which has code blocks already removed, and add code panels separately
-    final segments = _parseMessageIntoSegments(message.displayText);
+    final segments = parseMessageIntoSegments(message.displayText);
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2754,7 +2756,7 @@ class _InlineCodePanelState extends State<_InlineCodePanel> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return _HtmlPreviewDialog(htmlContent: htmlCode);
+        return HtmlPreviewDialog(htmlContent: htmlCode);
       },
     );
   }
@@ -2921,278 +2923,5 @@ class _InlineCodePanelState extends State<_InlineCodePanel> {
   }
 }
 
-/* ----------------------------------------------------------
-   MESSAGE SEGMENTS - Data classes for parsing message content
----------------------------------------------------------- */
-abstract class MessageSegment {}
 
-class TextSegment extends MessageSegment {
-  final String text;
-  TextSegment(this.text);
-}
 
-class CodeSegment extends MessageSegment {
-  final CodeContent codeContent;
-  CodeSegment(this.codeContent);
-}
-
-/* ----------------------------------------------------------
-   MESSAGE PARSING - Utility function to parse message into segments
----------------------------------------------------------- */
-List<MessageSegment> _parseMessageIntoSegments(String text) {
-  final segments = <MessageSegment>[];
-  
-  // Define patterns for different code languages
-  final codePatterns = {
-    'dart': RegExp(r'```(?:dart|flutter)\s*\n(.*?)\n```', dotAll: true),
-    'python': RegExp(r'```(?:python|py)\s*\n(.*?)\n```', dotAll: true),
-    'javascript': RegExp(r'```(?:javascript|js)\s*\n(.*?)\n```', dotAll: true),
-    'typescript': RegExp(r'```(?:typescript|ts)\s*\n(.*?)\n```', dotAll: true),
-    'java': RegExp(r'```java\s*\n(.*?)\n```', dotAll: true),
-    'cpp': RegExp(r'```(?:cpp|c\+\+|cxx)\s*\n(.*?)\n```', dotAll: true),
-    'c': RegExp(r'```c\s*\n(.*?)\n```', dotAll: true),
-    'rust': RegExp(r'```rust\s*\n(.*?)\n```', dotAll: true),
-    'go': RegExp(r'```go\s*\n(.*?)\n```', dotAll: true),
-    'html': RegExp(r'```html\s*\n(.*?)\n```', dotAll: true),
-    'css': RegExp(r'```css\s*\n(.*?)\n```', dotAll: true),
-    'json': RegExp(r'```json\s*\n(.*?)\n```', dotAll: true),
-    'xml': RegExp(r'```xml\s*\n(.*?)\n```', dotAll: true),
-    'yaml': RegExp(r'```(?:yaml|yml)\s*\n(.*?)\n```', dotAll: true),
-    'sql': RegExp(r'```sql\s*\n(.*?)\n```', dotAll: true),
-    'bash': RegExp(r'```(?:bash|sh|shell)\s*\n(.*?)\n```', dotAll: true),
-    'powershell': RegExp(r'```(?:powershell|ps1)\s*\n(.*?)\n```', dotAll: true),
-    'generic': RegExp(r'```(?:\w*\s*)?\n(.*?)\n```', dotAll: true),
-  };
-  
-  final languageExtensions = {
-    'dart': '.dart',
-    'python': '.py',
-    'javascript': '.js',
-    'typescript': '.ts',
-    'java': '.java',
-    'cpp': '.cpp',
-    'c': '.c',
-    'rust': '.rs',
-    'go': '.go',
-    'html': '.html',
-    'css': '.css',
-    'json': '.json',
-    'xml': '.xml',
-    'yaml': '.yaml',
-    'sql': '.sql',
-    'bash': '.sh',
-    'powershell': '.ps1',
-    'generic': '.txt',
-  };
-  
-  // Find all code blocks and their positions
-  final codeBlocks = <({int start, int end, CodeContent code})>[];
-  
-  for (String language in codePatterns.keys) {
-    final matches = codePatterns[language]!.allMatches(text);
-    for (final match in matches) {
-      final codeText = match.group(1)?.trim() ?? '';
-      if (codeText.isNotEmpty) {
-        codeBlocks.add((
-          start: match.start,
-          end: match.end,
-          code: CodeContent(
-            code: codeText,
-            language: language,
-            extension: languageExtensions[language] ?? '.txt',
-          ),
-        ));
-      }
-    }
-  }
-  
-  // Sort code blocks by position
-  codeBlocks.sort((a, b) => a.start.compareTo(b.start));
-  
-  // Split text into segments
-  int lastEnd = 0;
-  for (final block in codeBlocks) {
-    // Add text before this code block
-    if (block.start > lastEnd) {
-      final textContent = text.substring(lastEnd, block.start).trim();
-      if (textContent.isNotEmpty) {
-        segments.add(TextSegment(textContent));
-      }
-    }
-    
-    // Add the code block
-    segments.add(CodeSegment(block.code));
-    lastEnd = block.end;
-  }
-  
-  // Add remaining text after the last code block
-  if (lastEnd < text.length) {
-    final textContent = text.substring(lastEnd).trim();
-    if (textContent.isNotEmpty) {
-      segments.add(TextSegment(textContent));
-    }
-  }
-  
-  // If no code blocks found, treat entire text as one text segment
-  if (codeBlocks.isEmpty) {
-    segments.add(TextSegment(text));
-  }
-  
-  return segments;
-}
-
-/* ----------------------------------------------------------
-   HTML PREVIEW DIALOG - Shows HTML content in a WebView
----------------------------------------------------------- */
-class _HtmlPreviewDialog extends StatefulWidget {
-  final String htmlContent;
-  
-  const _HtmlPreviewDialog({required this.htmlContent});
-  
-  @override
-  State<_HtmlPreviewDialog> createState() => _HtmlPreviewDialogState();
-}
-
-class _HtmlPreviewDialogState extends State<_HtmlPreviewDialog> {
-  late final WebViewController _webViewController;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeWebView();
-  }
-
-  void _initializeWebView() {
-    _webViewController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-            });
-          },
-          onPageFinished: (String url) {
-            setState(() {
-              _isLoading = false;
-            });
-          },
-        ),
-      );
-
-    // Create a complete HTML document with the provided HTML content
-    final String completeHtml = '''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Preview</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 16px;
-            line-height: 1.6;
-            color: #333;
-        }
-        * {
-            max-width: 100%;
-        }
-        img {
-            height: auto;
-        }
-    </style>
-</head>
-<body>
-${widget.htmlContent}
-</body>
-</html>
-    ''';
-
-    _webViewController.loadHtmlString(completeHtml);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF4F3F0),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.preview_rounded,
-                    color: Color(0xFF000000),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'HTML Preview',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF000000),
-                    ),
-                  ),
-                  if (_isLoading) ...[
-                    const SizedBox(width: 8),
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF000000)),
-                      ),
-                    ),
-                  ],
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
-                      Icons.close,
-                      color: Color(0xFF000000),
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // WebView Content
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: const Color(0xFFE5E7EB)),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: WebViewWidget(controller: _webViewController),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-}
