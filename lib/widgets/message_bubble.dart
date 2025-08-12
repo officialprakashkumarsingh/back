@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'message_reactions.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models.dart';
 
@@ -13,6 +14,8 @@ class MessageBubble extends StatefulWidget {
   final VoidCallback? onUserMessageTap;
   final Widget Function(Message) messageContentBuilder;
   final Function(String modifyType)? onModifyResponse;
+  final Function(String emoji)? onReaction;
+  final VoidCallback? onBotMessageTap;
   
   const MessageBubble({
     super.key,
@@ -21,6 +24,8 @@ class MessageBubble extends StatefulWidget {
     this.onUserMessageTap,
     required this.messageContentBuilder,
     this.onModifyResponse,
+    this.onReaction,
+    this.onBotMessageTap,
   });
 
   @override
@@ -511,7 +516,10 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
             )
           else if (isBot && canShowActions)
             GestureDetector(
-              onTap: _toggleActions,
+              onTap: () {
+                _toggleActions();
+                widget.onBotMessageTap?.call();
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
@@ -622,6 +630,11 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
                   ),
                 ),
               ),
+            ),
+          // Message reactions for bot messages
+          if (isBot && widget.onReaction != null)
+            MessageReactions(
+              onReaction: widget.onReaction!,
             ),
         ],
       ),
