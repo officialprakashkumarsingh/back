@@ -1,24 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'models.dart';
 import 'character_service.dart';
 import 'message_queue.dart';
-import 'utils/message_parsing.dart';
-import 'widgets/html_preview_dialog.dart';
 import 'widgets/input_bar.dart';
 import 'widgets/message_bubble.dart';
 import 'services/message_modifier_service.dart';
+import 'services/ai_chat_service.dart';
 
 /* ----------------------------------------------------------
    CHAT PAGE
@@ -54,28 +48,14 @@ class ChatPageState extends State<ChatPage> {
   bool _showQueuePanel = false;
   final MessageQueue _messageQueue = MessageQueue();
 
-  http.Client? _httpClient;
+
   final CharacterService _characterService = CharacterService();
 
 
   final _prompts = ['Explain quantum computing', 'Write a Python snippet', 'Draft an email to my boss', 'Ideas for weekend trip'];
   
   // MODIFICATION: Robust function to fix server-side encoding errors (mojibake).
-  // This is the core fix for rendering emojis and special characters correctly.
-  String _fixServerEncoding(String text) {
-    try {
-      // This function corrects text that was encoded in UTF-8 but mistakenly interpreted as Latin-1.
-      // 1. We take the garbled string and encode it back into bytes using Latin-1.
-      //    This recovers the original, correct UTF-8 byte sequence.
-      final originalBytes = latin1.encode(text);
-      // 2. We then decode these bytes using the correct UTF-8 format.
-      //    `allowMalformed: true` makes this more robust against potential errors.
-      return utf8.decode(originalBytes, allowMalformed: true);
-    } catch (e) {
-      // If anything goes wrong, return the original text to prevent the app from crashing.
-      return text;
-    }
-  }
+
 
   @override
   void initState() {
@@ -92,7 +72,6 @@ class ChatPageState extends State<ChatPage> {
     _characterService.removeListener(_onCharacterChanged);
     _controller.dispose();
     _scroll.dispose();
-    _httpClient?.close();
     super.dispose();
   }
 
@@ -101,7 +80,6 @@ class ChatPageState extends State<ChatPage> {
   void loadChatSession(List<Message> messages) {
     setState(() {
       _awaitingReply = false;
-      _httpClient?.close();
       _messages.clear();
       _messages.addAll(messages);
     });
@@ -199,164 +177,63 @@ class ChatPageState extends State<ChatPage> {
 
     setState(() => _awaitingReply = true);
 
-    // Regular AI chat - AI is now aware of external tools it can access
-    // The AI will mention and use external tools based on user requests
-
-    _httpClient = http.Client();
-    final memoryContext = _getMemoryContext();
-    final fullPrompt = memoryContext.isNotEmpty ? '$memoryContext\n\nUser: $prompt' : prompt;
-
     try {
-      final request = http.Request('POST', Uri.parse('https://ahamai-api.officialprakashkrsingh.workers.dev/v1/chat/completions'));
-      request.headers.addAll({
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ahamaibyprakash25',
-      });
-      // Build message content with optional image
-      Map<String, dynamic> messageContent;
-      if (_uploadedImageBase64 != null && _uploadedImageBase64!.isNotEmpty) {
-        messageContent = {
-          'role': 'user',
-          'content': [
-            {
-              'type': 'text',
-              'text': fullPrompt,
-            },
-            {
-              'type': 'image_url',
-              'image_url': {
-                'url': _uploadedImageBase64!,
-              },
-            },
-          ],
-        };
-      } else {
-        messageContent = {'role': 'user', 'content': fullPrompt};
-      }
+      final responseStream = await AIChatService.generateResponse(
+        prompt: prompt,
+        selectedModel: widget.selectedModel,
+        memoryContext: _getMemoryContext(),
+        uploadedImageBase64: _uploadedImageBase64,
+      );
 
-      final systemMessage = {
-        'role': 'system',
-        'content': '''You are AhamAI, an intelligent assistant. You provide helpful, accurate, and comprehensive responses to user questions.
+      // Create bot message placeholder
+      final botMessage = Message.bot('');
+      setState(() => _messages.add(botMessage));
+      final botMessageIndex = _messages.length - 1;
 
-Be helpful, conversational, and provide detailed explanations when needed. You can write code, explain concepts, help with problems, and engage in discussions on a wide variety of topics.
+      String accumulatedText = '';
+      await for (final content in responseStream) {
+        if (!mounted || !_awaitingReply) break;
 
-📸 SCREENSHOT CAPABILITY:
-When users ask for screenshots of websites, you can generate them using this URL format:
-https://s.wordpress.com/mshots/v1/[URL_ENCODED_WEBSITE]?w=1920&h=1080
-
-Examples:
-- For google.com: https://s.wordpress.com/mshots/v1/https%3A%2F%2Fgoogle.com?w=1920&h=1080
-- For github.com: https://s.wordpress.com/mshots/v1/https%3A%2F%2Fgithub.com?w=1920&h=1080
-- For any site: https://s.wordpress.com/mshots/v1/[URL_ENCODED_SITE]?w=1920&h=1080
-
-Simply include the screenshot URL in your response using markdown image syntax: ![Screenshot Description](screenshot_url)
-
-The app will automatically render these images inline with your response.
-
-Always be polite, professional, and aim to provide the most useful response possible.'''
-      };
-
-      request.body = json.encode({
-        'model': widget.selectedModel,
-        'messages': [systemMessage, messageContent],
-        'stream': true,
-      });
-
-      final response = await _httpClient!.send(request);
-
-      if (response.statusCode == 200) {
-        final stream = response.stream.transform(utf8.decoder).transform(const LineSplitter());
-        var botMessage = Message.bot('', isStreaming: true);
-        final botMessageIndex = _messages.length;
-        
+        accumulatedText += AIChatService.fixServerEncoding(content);
         setState(() {
-          _messages.add(botMessage);
-        });
-
-        String accumulatedText = '';
-        await for (final line in stream) {
-          if (!mounted || _httpClient == null) break;
-          
-          if (line.startsWith('data: ')) {
-            final jsonStr = line.substring(6);
-            if (jsonStr.trim() == '[DONE]') break;
-            
-            try {
-              final data = json.decode(jsonStr);
-              final content = data['choices']?[0]?['delta']?['content'];
-              if (content != null) {
-                accumulatedText += _fixServerEncoding(content);
-                setState(() {
-                  // Update only text during streaming, don't parse content yet
-                  _messages[botMessageIndex] = _messages[botMessageIndex].copyWith(
-                    text: accumulatedText,
-                    isStreaming: true,
-                    // For streaming, use raw text as displayText and keep codes empty
-                    displayText: accumulatedText,
-                    codes: [], // Clear codes during streaming to prevent duplication
-                  );
-                });
-                _scrollToBottom();
-              }
-            } catch (e) {
-              // Continue on JSON parsing errors
-            }
-          }
-        }
-
-        setState(() {
-          _messages[botMessageIndex] = Message.bot(
-            accumulatedText,
-            isStreaming: false,
+          _messages[botMessageIndex] = _messages[botMessageIndex].copyWith(
+            text: accumulatedText,
+            isStreaming: true,
+            displayText: accumulatedText,
+            codes: [], // Clear codes during streaming to prevent duplication
           );
         });
-
-        // Update memory with the completed conversation
-        _updateConversationMemory(prompt, accumulatedText);
-
-        // Ensure UI scrolls to bottom after processing
         _scrollToBottom();
+      }
 
-      } else {
-        // Handle different status codes more gracefully
-        String errorMessage;
-        if (response.statusCode == 400) {
-          errorMessage = 'Bad request. Please check your message format and try again.';
-        } else if (response.statusCode == 401) {
-          errorMessage = 'Authentication failed. Please check API credentials.';
-        } else if (response.statusCode == 429) {
-          errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
-        } else if (response.statusCode >= 500) {
-          errorMessage = 'Server error. Please try again in a moment.';
-        } else {
-          errorMessage = 'Sorry, there was an error processing your request. Status: ${response.statusCode}';
-        }
-        
+      // Final update when streaming is complete
+      if (mounted && _awaitingReply) {
         setState(() {
-          _messages.add(Message.bot(errorMessage));
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _messages.add(Message.bot('Sorry, I\'m having trouble connecting right now. Please try again. Error: ${e.toString().length > 100 ? e.toString().substring(0, 100) + '...' : e.toString()}'));
-        });
-      }
-    } finally {
-      // Clean up resources
-      _httpClient?.close();
-      _httpClient = null;
-      if (mounted) {
-        setState(() {
+          _messages[botMessageIndex] = _messages[botMessageIndex].copyWith(isStreaming: false);
           _awaitingReply = false;
         });
-        // Clear uploaded image only after successful processing
+
+        _updateConversationMemory(prompt, accumulatedText);
+
         if (_uploadedImageBase64 != null) {
-          Future.delayed(Duration(milliseconds: 500), () {
+          Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) _clearUploadedImage();
           });
         }
-        // Process next message in queue if available
+        _processNextQueuedMessage();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _awaitingReply = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: const Color(0xFFEAE9E5)),
+        );
+        
+        if (_uploadedImageBase64 != null) {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) _clearUploadedImage();
+          });
+        }
         _processNextQueuedMessage();
       }
     }
@@ -395,8 +272,6 @@ Always be polite, professional, and aim to provide the most useful response poss
   }
   
   void _stopGeneration() {
-    _httpClient?.close();
-    _httpClient = null;
     if(mounted) {
       setState(() {
         if (_awaitingReply && _messages.isNotEmpty && _messages.last.isStreaming) {
@@ -437,8 +312,6 @@ Always be polite, professional, and aim to provide the most useful response poss
       _awaitingReply = false;
       _editingMessageId = null;
       _conversationMemory.clear(); // Clear memory for fresh start
-      _httpClient?.close();
-      _httpClient = null;
       _messages.clear();
       final selectedCharacter = _characterService.selectedCharacter;
       if (selectedCharacter != null) {
