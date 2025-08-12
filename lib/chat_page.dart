@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'models.dart';
 import 'character_service.dart';
 import 'external_tools_service.dart';
@@ -2904,6 +2905,65 @@ class _HtmlPreviewDialog extends StatefulWidget {
 }
 
 class _HtmlPreviewDialogState extends State<_HtmlPreviewDialog> {
+  late final WebViewController _webViewController;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeWebView();
+  }
+
+  void _initializeWebView() {
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            setState(() {
+              _isLoading = true;
+            });
+          },
+          onPageFinished: (String url) {
+            setState(() {
+              _isLoading = false;
+            });
+          },
+        ),
+      );
+
+    // Create a complete HTML document with the provided HTML content
+    final String completeHtml = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Preview</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 16px;
+            line-height: 1.6;
+            color: #333;
+        }
+        * {
+            max-width: 100%;
+        }
+        img {
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+${widget.htmlContent}
+</body>
+</html>
+    ''';
+
+    _webViewController.loadHtmlString(completeHtml);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -2940,6 +3000,17 @@ class _HtmlPreviewDialogState extends State<_HtmlPreviewDialog> {
                       color: Color(0xFF000000),
                     ),
                   ),
+                  if (_isLoading) ...[
+                    const SizedBox(width: 8),
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF000000)),
+                      ),
+                    ),
+                  ],
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -2952,7 +3023,7 @@ class _HtmlPreviewDialogState extends State<_HtmlPreviewDialog> {
                 ],
               ),
             ),
-            // Content
+            // WebView Content
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(16),
@@ -2964,13 +3035,7 @@ class _HtmlPreviewDialogState extends State<_HtmlPreviewDialog> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: SingleChildScrollView(
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        child: _buildHtmlContent(),
-                      ),
-                    ),
+                    child: WebViewWidget(controller: _webViewController),
                   ),
                 ),
               ),
@@ -2980,104 +3045,5 @@ class _HtmlPreviewDialogState extends State<_HtmlPreviewDialog> {
       ),
     );
   }
-  
-  Widget _buildHtmlContent() {
-    // Simple HTML rendering - you can enhance this with webview_flutter for full HTML support
-    // For now, let's show a basic interpretation
-    String content = widget.htmlContent;
-    
-    // Basic HTML tag replacements for simple preview
-    content = content.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
-    content = content.replaceAll(RegExp(r'<p[^>]*>', caseSensitive: false), '\n\n');
-    content = content.replaceAll(RegExp(r'</p>', caseSensitive: false), '');
-    content = content.replaceAllMapped(RegExp(r'<h[1-6][^>]*>(.*?)</h[1-6]>', caseSensitive: false), (match) {
-      return '\n\n${match.group(1)?.toUpperCase() ?? ''}\n';
-    });
-    content = content.replaceAll(RegExp(r'<[^>]+>'), ''); // Remove remaining HTML tags
-    content = content.trim();
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF9C4),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFFCD34D)),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.info_outline,
-                color: Color(0xFFD97706),
-                size: 16,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Basic HTML preview - Full rendering requires webview_flutter package',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: const Color(0xFFD97706),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Raw HTML:',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF000000),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-          ),
-          child: SelectableText(
-            widget.htmlContent,
-            style: GoogleFonts.robotoMono(
-              fontSize: 12,
-              color: const Color(0xFF374151),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Text Content:',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF000000),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-          ),
-          child: SelectableText(
-            content.isNotEmpty ? content : 'No text content found.',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: const Color(0xFF374151),
-              height: 1.5,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 }
