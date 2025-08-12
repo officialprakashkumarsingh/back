@@ -2597,6 +2597,15 @@ class _InlineCodePanelState extends State<_InlineCodePanel> {
     });
   }
   
+  void _previewHtml(String htmlCode) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return _HtmlPreviewDialog(htmlContent: htmlCode);
+      },
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -2636,6 +2645,19 @@ class _InlineCodePanelState extends State<_InlineCodePanel> {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  if (widget.codeContent.language.toLowerCase() == 'html')
+                    IconButton(
+                      onPressed: () => _previewHtml(widget.codeContent.code),
+                      icon: const Icon(
+                        Icons.preview_rounded,
+                        size: 16,
+                        color: Color(0xFF000000),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                    ),
                   IconButton(
                     onPressed: () => _copyCode(widget.codeContent.code),
                     icon: const Icon(
@@ -2864,4 +2886,195 @@ List<MessageSegment> _parseMessageIntoSegments(String text) {
   }
   
   return segments;
+}
+
+/* ----------------------------------------------------------
+   HTML PREVIEW DIALOG - Shows HTML content in a WebView
+---------------------------------------------------------- */
+class _HtmlPreviewDialog extends StatefulWidget {
+  final String htmlContent;
+  
+  const _HtmlPreviewDialog({required this.htmlContent});
+  
+  @override
+  State<_HtmlPreviewDialog> createState() => _HtmlPreviewDialogState();
+}
+
+class _HtmlPreviewDialogState extends State<_HtmlPreviewDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF4F3F0),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.preview_rounded,
+                    color: Color(0xFF000000),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'HTML Preview',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF000000),
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.close,
+                      color: Color(0xFF000000),
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Content
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: SingleChildScrollView(
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        child: _buildHtmlContent(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildHtmlContent() {
+    // Simple HTML rendering - you can enhance this with webview_flutter for full HTML support
+    // For now, let's show a basic interpretation
+    String content = widget.htmlContent;
+    
+    // Basic HTML tag replacements for simple preview
+    content = content.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    content = content.replaceAll(RegExp(r'<p[^>]*>', caseSensitive: false), '\n\n');
+    content = content.replaceAll(RegExp(r'</p>', caseSensitive: false), '');
+    content = content.replaceAll(RegExp(r'<h[1-6][^>]*>(.*?)</h[1-6]>', caseSensitive: false), (match) {
+      return '\n\n${match.group(1)?.toUpperCase() ?? ''}\n';
+    });
+    content = content.replaceAll(RegExp(r'<[^>]+>'), ''); // Remove remaining HTML tags
+    content = content.trim();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF9C4),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFFCD34D)),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.info_outline,
+                color: Color(0xFFD97706),
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Basic HTML preview - Full rendering requires webview_flutter package',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: const Color(0xFFD97706),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Raw HTML:',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF000000),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9FAFB),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: SelectableText(
+            widget.htmlContent,
+            style: GoogleFonts.robotoMono(
+              fontSize: 12,
+              color: const Color(0xFF374151),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Text Content:',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF000000),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9FAFB),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: SelectableText(
+            content.isNotEmpty ? content : 'No text content found.',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: const Color(0xFF374151),
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
