@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models.dart';
 
 class AIChatService {
   static const String _apiUrl = 'https://ahamai-api.officialprakashkrsingh.workers.dev/v1/chat/completions';

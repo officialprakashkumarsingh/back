@@ -186,11 +186,12 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     const Text(
                       'Modify Response',
                       style: TextStyle(
@@ -242,8 +243,51 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
                       subtitle: 'Include practical examples and use cases',
                       onTap: () => _handleModifyOption(context, 'examples'),
                     ),
-                    const SizedBox(height: 10),
-                  ],
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.emoji_emotions_outlined,
+                      title: 'Add Humor',
+                      subtitle: 'Make it more engaging with appropriate humor',
+                      onTap: () => _handleModifyOption(context, 'humor'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.psychology_outlined,
+                      title: 'Technical Deep Dive',
+                      subtitle: 'Add technical details and explanations',
+                      onTap: () => _handleModifyOption(context, 'technical'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.trending_up,
+                      title: 'Action-Oriented',
+                      subtitle: 'Focus on actionable steps and solutions',
+                      onTap: () => _handleModifyOption(context, 'actionable'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.quiz_outlined,
+                      title: 'Question-Based',
+                      subtitle: 'Present information through questions',
+                      onTap: () => _handleModifyOption(context, 'questions'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.article_outlined,
+                      title: 'Structured Format',
+                      subtitle: 'Organize with clear headings and sections',
+                      onTap: () => _handleModifyOption(context, 'structured'),
+                    ),
+                    _buildModifyOption(
+                      context,
+                      icon: Icons.timeline,
+                      title: 'Step-by-Step',
+                      subtitle: 'Break down into sequential steps',
+                      onTap: () => _handleModifyOption(context, 'steps'),
+                    ),
+                    const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -360,6 +404,18 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
         return 'more casual';
       case 'examples':
         return 'include examples';
+      case 'humor':
+        return 'more engaging';
+      case 'technical':
+        return 'more technical';
+      case 'actionable':
+        return 'action-focused';
+      case 'questions':
+        return 'question-based';
+      case 'structured':
+        return 'better structured';
+      case 'steps':
+        return 'step-by-step';
       default:
         return 'modified';
     }
@@ -572,7 +628,7 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
                       const SizedBox(width: 8),
                       // Modify Response
                       ActionButton(
-                        icon: Icons.edit_outlined,
+                        icon: Icons.auto_fix_high,
                         onTap: () => _showModifyOptions(context),
                         tooltip: 'Modify response',
                       ),

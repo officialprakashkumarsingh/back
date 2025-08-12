@@ -11,6 +11,7 @@ import 'character_service.dart';
 import 'message_queue.dart';
 import 'widgets/input_bar.dart';
 import 'widgets/message_bubble.dart';
+import 'widgets/enhanced_code_block.dart';
 import 'services/message_modifier_service.dart';
 import 'services/ai_chat_service.dart';
 
@@ -561,34 +562,43 @@ class ChatPageState extends State<ChatPage> {
                       onModifyResponse: (modifyType) => _modifyResponse(index, modifyType),
                       messageContentBuilder: (message) {
                         if (message.sender == Sender.bot) {
-                          // For bot messages, render with markdown
-                          return MarkdownBody(
-                            data: message.isStreaming ? message.displayText : message.displayText,
-                            styleSheet: MarkdownStyleSheet(
-                              p: const TextStyle(
-                                fontSize: 15, 
-                                height: 1.5, 
-                                color: Color(0xFF000000),
-                                fontWeight: FontWeight.w400,
-                              ),
-                              code: TextStyle(
-                                backgroundColor: const Color(0xFFEAE9E5),
-                                color: const Color(0xFF000000),
-                                fontFamily: 'SF Mono',
-                                fontSize: 14,
-                              ),
-                              codeblockDecoration: BoxDecoration(
-                                color: const Color(0xFFEAE9E5),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              h1: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-                              h2: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-                              h3: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-                              listBullet: const TextStyle(color: Color(0xFFA3A3A3)),
-                              blockquote: const TextStyle(color: Color(0xFFA3A3A3)),
-                              strong: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-                              em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
-                            ),
+                          // For bot messages, render with markdown and enhanced code blocks
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (message.displayText.isNotEmpty)
+                                MarkdownBody(
+                                  data: message.displayText,
+                                  styleSheet: MarkdownStyleSheet(
+                                    p: const TextStyle(
+                                      fontSize: 15, 
+                                      height: 1.5, 
+                                      color: Color(0xFF000000),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                    code: TextStyle(
+                                      backgroundColor: const Color(0xFFEAE9E5),
+                                      color: const Color(0xFF000000),
+                                      fontFamily: 'SF Mono',
+                                      fontSize: 14,
+                                    ),
+                                    codeblockDecoration: BoxDecoration(
+                                      color: const Color(0xFFEAE9E5),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    h1: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                                    h2: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                                    h3: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                                    listBullet: const TextStyle(color: Color(0xFFA3A3A3)),
+                                    blockquote: const TextStyle(color: Color(0xFFA3A3A3)),
+                                    strong: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                                    em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
+                                  ),
+                                ),
+                              // Enhanced code blocks (only for finished messages)
+                              if (!message.isStreaming && message.codes.isNotEmpty)
+                                EnhancedCodeBlock(codes: message.codes),
+                            ],
                           );
                         } else {
                           // For user messages, simple text

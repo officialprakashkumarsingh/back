@@ -13,6 +13,18 @@ class MessageModifierService {
         return 'written in a more friendly, conversational, and casual tone';
       case 'examples':
         return 'enhanced with practical examples, use cases, and real-world applications';
+      case 'humor':
+        return 'more engaging with appropriate humor, wit, and entertaining elements while maintaining accuracy';
+      case 'technical':
+        return 'more technical with detailed explanations, technical terms, and in-depth analysis';
+      case 'actionable':
+        return 'focused on actionable steps, practical solutions, and clear next steps';
+      case 'questions':
+        return 'presented through thought-provoking questions that guide understanding';
+      case 'structured':
+        return 'organized with clear headings, sections, and a logical structure';
+      case 'steps':
+        return 'broken down into clear, sequential steps that are easy to follow';
       default:
         return 'modified';
     }
