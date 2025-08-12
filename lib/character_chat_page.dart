@@ -478,6 +478,7 @@ class _CharacterChatPageState extends State<CharacterChatPage> {
                 final isUser = message.sender == Sender.user;
                 
                 return GestureDetector(
+                  key: ValueKey(message.id),
                   onLongPress: () => _showMessageOptions(context, message),
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 16),

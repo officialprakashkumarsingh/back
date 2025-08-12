@@ -899,6 +899,7 @@ Error: ${result['error']}''';
               itemBuilder: (_, index) {
                 final message = _messages[index];
                 return _MessageBubble(
+                  key: ValueKey(message.id),
                   message: message,
                   onRegenerate: () => _regenerateResponse(index),
                   onUserMessageTap: () => _showUserMessageOptions(context, message),
@@ -1044,6 +1045,7 @@ class _MessageBubble extends StatefulWidget {
   final VoidCallback? onRegenerate;
   final VoidCallback? onUserMessageTap;
   const _MessageBubble({
+    super.key,
     required this.message,
     this.onRegenerate,
     this.onUserMessageTap,
