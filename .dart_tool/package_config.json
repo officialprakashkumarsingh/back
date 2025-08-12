@@ -39,9 +39,9 @@
     },
     {
       "name": "async",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/async-2.11.0",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/async-2.13.0",
       "packageUri": "lib/",
-      "languageVersion": "2.18"
+      "languageVersion": "3.4"
     },
     {
       "name": "barcode",
@@ -57,27 +57,27 @@
     },
     {
       "name": "boolean_selector",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/boolean_selector-2.1.1",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/boolean_selector-2.1.2",
       "packageUri": "lib/",
-      "languageVersion": "2.17"
+      "languageVersion": "3.1"
     },
     {
       "name": "characters",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/characters-1.3.0",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/characters-1.4.0",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.4"
     },
     {
       "name": "clock",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/clock-1.1.1",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/clock-1.1.2",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.4"
     },
     {
       "name": "collection",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/collection-1.18.0",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/collection-1.19.1",
       "packageUri": "lib/",
-      "languageVersion": "2.18"
+      "languageVersion": "3.4"
     },
     {
       "name": "convert",
@@ -123,9 +123,9 @@
     },
     {
       "name": "fake_async",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/fake_async-1.3.1",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/fake_async-1.3.3",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.3"
     },
     {
       "name": "ffi",
@@ -177,9 +177,9 @@
     },
     {
       "name": "flutter",
-      "rootUri": "file:///workspace/flutter/packages/flutter",
+      "rootUri": "file:///opt/flutter/packages/flutter",
       "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.7"
     },
     {
       "name": "flutter_lints",
@@ -207,9 +207,9 @@
     },
     {
       "name": "flutter_test",
-      "rootUri": "file:///workspace/flutter/packages/flutter_test",
+      "rootUri": "file:///opt/flutter/packages/flutter_test",
       "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.7"
     },
     {
       "name": "flutter_tts",
@@ -231,9 +231,9 @@
     },
     {
       "name": "flutter_web_plugins",
-      "rootUri": "file:///workspace/flutter/packages/flutter_web_plugins",
+      "rootUri": "file:///opt/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
-      "languageVersion": "3.2"
+      "languageVersion": "3.7"
     },
     {
       "name": "functions_client",
@@ -357,13 +357,13 @@
     },
     {
       "name": "leak_tracker",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/leak_tracker-10.0.5",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/leak_tracker-10.0.9",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
     {
       "name": "leak_tracker_flutter_testing",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/leak_tracker_flutter_testing-3.0.5",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/leak_tracker_flutter_testing-3.0.9",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -393,9 +393,9 @@
     },
     {
       "name": "matcher",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/matcher-0.12.16+1",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/matcher-0.12.17",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.4"
     },
     {
       "name": "material_color_utilities",
@@ -405,7 +405,7 @@
     },
     {
       "name": "meta",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/meta-1.15.0",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/meta-1.16.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -423,9 +423,9 @@
     },
     {
       "name": "path",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/path-1.9.0",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/path-1.9.1",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.4"
     },
     {
       "name": "path_parsing",
@@ -603,15 +603,15 @@
     },
     {
       "name": "sky_engine",
-      "rootUri": "file:///workspace/flutter/bin/cache/pkg/sky_engine",
+      "rootUri": "file:///opt/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
-      "languageVersion": "3.2"
+      "languageVersion": "3.7"
     },
     {
       "name": "source_span",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/source_span-1.10.0",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/source_span-1.10.1",
       "packageUri": "lib/",
-      "languageVersion": "2.18"
+      "languageVersion": "3.1"
     },
     {
       "name": "sprintf",
@@ -621,9 +621,9 @@
     },
     {
       "name": "stack_trace",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/stack_trace-1.11.1",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/stack_trace-1.12.1",
       "packageUri": "lib/",
-      "languageVersion": "2.18"
+      "languageVersion": "3.4"
     },
     {
       "name": "storage_client",
@@ -633,15 +633,15 @@
     },
     {
       "name": "stream_channel",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/stream_channel-2.1.2",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/stream_channel-2.1.4",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.3"
     },
     {
       "name": "string_scanner",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/string_scanner-1.2.0",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/string_scanner-1.4.1",
       "packageUri": "lib/",
-      "languageVersion": "2.18"
+      "languageVersion": "3.1"
     },
     {
       "name": "supabase",
@@ -669,15 +669,15 @@
     },
     {
       "name": "term_glyph",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/term_glyph-1.2.1",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/term_glyph-1.2.2",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.1"
     },
     {
       "name": "test_api",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/test_api-0.7.2",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/test_api-0.7.4",
       "packageUri": "lib/",
-      "languageVersion": "3.2"
+      "languageVersion": "3.5"
     },
     {
       "name": "timeago",
@@ -771,7 +771,7 @@
     },
     {
       "name": "vm_service",
-      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/vm_service-14.2.5",
+      "rootUri": "file:///home/ubuntu/.pub-cache/hosted/pub.dev/vm_service-15.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.3"
     },
@@ -854,10 +854,9 @@
       "languageVersion": "3.1"
     }
   ],
-  "generated": "2025-08-12T11:33:03.951166Z",
   "generator": "pub",
-  "generatorVersion": "3.5.4",
-  "flutterRoot": "file:///workspace/flutter",
-  "flutterVersion": "3.24.5",
+  "generatorVersion": "3.8.1",
+  "flutterRoot": "file:///opt/flutter",
+  "flutterVersion": "3.32.8",
   "pubCache": "file:///home/ubuntu/.pub-cache"
 }
