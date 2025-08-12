@@ -2507,50 +2507,53 @@ class _MessageContentWithInlineCode extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    // Parse the original message text to find code blocks and text segments
-    final segments = _parseMessageIntoSegments(message.text);
+    // Use displayText which has code blocks already removed, and add code panels separately
+    final segments = _parseMessageIntoSegments(message.displayText);
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: segments.map((segment) {
-        if (segment is TextSegment) {
-          return MarkdownBody(
-            data: segment.text,
-            imageBuilder: (uri, title, alt) => _buildImageWidget(uri.toString()),
-            styleSheet: MarkdownStyleSheet(
-              p: const TextStyle(
-                fontSize: 15, 
-                height: 1.5, 
-                color: Color(0xFF000000),
-                fontWeight: FontWeight.w400,
+      children: [
+        // Render text segments (displayText with code blocks removed)
+        ...segments.map((segment) {
+          if (segment is TextSegment) {
+            return MarkdownBody(
+              data: segment.text,
+              imageBuilder: (uri, title, alt) => _buildImageWidget(uri.toString()),
+              styleSheet: MarkdownStyleSheet(
+                p: const TextStyle(
+                  fontSize: 15, 
+                  height: 1.5, 
+                  color: Color(0xFF000000),
+                  fontWeight: FontWeight.w400,
+                ),
+                code: TextStyle(
+                  backgroundColor: const Color(0xFFEAE9E5),
+                  color: const Color(0xFF000000),
+                  fontFamily: 'SF Mono',
+                  fontSize: 14,
+                ),
+                codeblockDecoration: BoxDecoration(
+                  color: const Color(0xFFEAE9E5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                h1: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                h2: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                h3: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                listBullet: const TextStyle(color: Color(0xFFA3A3A3)),
+                blockquote: const TextStyle(color: Color(0xFFA3A3A3)),
+                strong: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
+                em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
               ),
-              code: TextStyle(
-                backgroundColor: const Color(0xFFEAE9E5),
-                color: const Color(0xFF000000),
-                fontFamily: 'SF Mono',
-                fontSize: 14,
-              ),
-              codeblockDecoration: BoxDecoration(
-                color: const Color(0xFFEAE9E5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              h1: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-              h2: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-              h3: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-              listBullet: const TextStyle(color: Color(0xFFA3A3A3)),
-              blockquote: const TextStyle(color: Color(0xFFA3A3A3)),
-              strong: const TextStyle(color: Color(0xFF000000), fontWeight: FontWeight.bold),
-              em: const TextStyle(color: Color(0xFF000000), fontStyle: FontStyle.italic),
-            ),
-          );
-        } else if (segment is CodeSegment) {
-          return Container(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            child: _InlineCodePanel(codeContent: segment.codeContent),
-          );
-        }
-        return const SizedBox.shrink();
-      }).toList(),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+        // Add code panels from message.codes
+        ...message.codes.map((codeContent) => Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          child: _InlineCodePanel(codeContent: codeContent),
+        )),
+      ],
     );
   }
 }
