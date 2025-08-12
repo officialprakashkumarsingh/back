@@ -1597,7 +1597,22 @@ class _InputBar extends StatelessWidget {
                               ? 'External tool is running...'
                               : uploadedImagePath != null
                                   ? 'Image uploaded - Describe or ask about it...'
-                                  : 'Message AhamAI (images, web search, screenshots, vision)...',
+                                  : 'Ask AhamAI',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          uploadedImagePath != null ? Icons.close : Icons.attach_file,
+                          color: const Color(0xFF6B7280),
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          if (uploadedImagePath != null) {
+                            onClearImage();
+                          } else {
+                            onImageUpload();
+                          }
+                        },
+                      ),
                       hintStyle: const TextStyle(
                         color: Color(0xFFA3A3A3),
                         fontSize: 16,
