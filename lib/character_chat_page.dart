@@ -163,6 +163,9 @@ class _CharacterChatPageState extends State<CharacterChatPage> {
       setState(() => _messages.add(Message.bot('Error: No model has been selected.')));
       return;
     }
+    
+    // Debug: Let's see what model we're using
+    print('DEBUG: Using model: ${widget.selectedModel}');
 
     final completer = Completer<void>();
     _streamSubscription?.cancel();

@@ -470,20 +470,7 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
             
             const SizedBox(height: 24),
             
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, color: Color(0xFF000000)),
-                  ),
-                ],
-              ),
-            ),
-            
+            // Spacing after profile section
             const SizedBox(height: 16),
             
             // Characters option with animated background
@@ -863,19 +850,43 @@ class _AnimatedCharactersCardState extends State<_AnimatedCharactersCard>
               ),
               child: Stack(
                 children: [
-                  // Animated background elements
-                  ...List.generate(6, (index) {
+                  // Real person avatars
+                  ...List.generate(3, (index) {
                     return Positioned(
-                      left: 20.0 + (_floatingAnimations[index].value.dx * 100),
-                      top: 5.0 + (_floatingAnimations[index].value.dy * 20),
+                      left: 25.0 + (index * 35.0) + (_floatingAnimations[index].value.dx * 30),
+                      top: 8.0 + (_floatingAnimations[index].value.dy * 15),
                       child: Transform.scale(
-                        scale: _scaleAnimation.value * (0.3 + index * 0.1),
+                        scale: _scaleAnimation.value * (0.7 + index * 0.1),
                         child: Container(
-                          width: 8 + (index * 2).toDouble(),
-                          height: 8 + (index * 2).toDouble(),
+                          width: 24,
+                          height: 24,
                           decoration: BoxDecoration(
-                            color: _getElementColor(index),
-                            borderRadius: BorderRadius.circular(50),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white, width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.5),
+                            child: Image.network(
+                              _getAvatarUrl(index),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: _getElementColor(index),
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 12,
+                                    color: Colors.white,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -918,6 +929,15 @@ class _AnimatedCharactersCardState extends State<_AnimatedCharactersCard>
         );
       },
     );
+  }
+  
+  String _getAvatarUrl(int index) {
+    final avatars = [
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRr59hvp--gFBL8slfLamVCq24h1CsmWl8f3A&usqp=CAU',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfxuhAwlzkECahuuU59Eznv-6VJIoLKfDeptOIaGdPIUphURWVSHS-j7k&s=10',
+      'https://5.imimg.com/data5/ANDROID/Default/2023/3/MV/BO/HY/186207530/product-jpeg.jpg',
+    ];
+    return avatars[index % avatars.length];
   }
   
   Color _getElementColor(int index) {
