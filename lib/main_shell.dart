@@ -33,7 +33,7 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
 
   // State for model selection
   List<String> _models = [];
-  String _selectedModel = 'claude-3-7-sonnet'; 
+  String _selectedModel = ''; // Will be set to first available model from API
   bool _isLoadingModels = true;
   
   // State for temporary chat mode
@@ -120,20 +120,33 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
         final models = (data['data'] as List).map<String>((item) => item['id']).toList();
         setState(() {
           _models = models;
-          if (!_models.contains(_selectedModel) && _models.isNotEmpty) {
-            _selectedModel = _models.first;
+          // Always set to first model if we don't have a valid selection
+          if (_selectedModel.isEmpty || !_models.contains(_selectedModel)) {
+            _selectedModel = _models.isNotEmpty ? _models.first : '';
           }
           _isLoadingModels = false;
         });
+        
+        // Debug: Print available models and selected model
+        print('DEBUG: Available models: $_models');
+        print('DEBUG: Selected model: $_selectedModel');
       } else {
         if (!mounted) return;
-        setState(() => _isLoadingModels = false);
-        _showSnackBar('Error fetching models: ${response.reasonPhrase}');
+        setState(() {
+          _models = ['gpt-4o-mini']; // Fallback model
+          _selectedModel = 'gpt-4o-mini';
+          _isLoadingModels = false;
+        });
+        _showSnackBar('Error fetching models: ${response.reasonPhrase}. Using fallback model.');
       }
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isLoadingModels = false);
-      _showSnackBar('Failed to fetch models: $e');
+      setState(() {
+        _models = ['gpt-4o-mini']; // Fallback model
+        _selectedModel = 'gpt-4o-mini';
+        _isLoadingModels = false;
+      });
+      _showSnackBar('Failed to fetch models: $e. Using fallback model.');
     }
   }
 
@@ -156,109 +169,31 @@ class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFF4F3F0),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(top: 12, bottom: 20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFC4C4C4),
-                    borderRadius: BorderRadius.circular(2),
+        return _ModelSelectionSheet(
+          models: _models,
+          selectedModel: _selectedModel,
+          isLoadingModels: _isLoadingModels,
+          onModelSelected: (model) {
+            setState(() => _selectedModel = model);
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '✅ $_selectedModel selected',
+                  style: const TextStyle(
+                    color: Color(0xFF000000),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Select AI Model',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF000000),
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close_rounded, color: Color(0xFFA3A3A3)),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                LimitedBox(
-                  maxHeight: 400,
-                  child: _isLoadingModels
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(40),
-                            child: CircularProgressIndicator(color: Color(0xFF000000)),
-                          ),
-                        )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: _models.length,
-                          itemBuilder: (context, index) {
-                            final model = _models[index];
-                            final isSelected = _selectedModel == model;
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFFEAE9E5) : const Color(0xFFF4F3F0),
-                                borderRadius: BorderRadius.circular(12),
-                                border: isSelected ? Border.all(color: const Color(0xFF000000), width: 1) : null,
-                              ),
-                              child: ListTile(
-                                title: Text(
-                                  model,
-                                  style: TextStyle(
-                                    color: isSelected ? const Color(0xFF000000) : const Color(0xFF000000),
-                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                  ),
-                                ),
-                                trailing: isSelected 
-                                    ? const Icon(Icons.check_circle_rounded, color: Color(0xFF000000))
-                                    : null,
-                                onTap: () {
-                                  HapticFeedback.selectionClick();
-                                  setState(() => _selectedModel = model);
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '✅ $_selectedModel selected',
-                                        style: const TextStyle(
-                                          color: Color(0xFF000000),
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      backgroundColor: Colors.white,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      margin: const EdgeInsets.all(16),
-                                      elevation: 4,
-                                      duration: const Duration(seconds: 2),
-                                    ),
-                                  );
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
+                backgroundColor: Colors.white,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.all(16),
+                elevation: 4,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          },
         );
       },
     );
@@ -950,6 +885,285 @@ class _AnimatedCharactersCardState extends State<_AnimatedCharactersCard>
       const Color(0xFF000000).withOpacity(0.15),
     ];
     return colors[index % colors.length];
+  }
+}
+
+/* ----------------------------------------------------------
+   MODEL SELECTION SHEET
+---------------------------------------------------------- */
+class _ModelSelectionSheet extends StatefulWidget {
+  final List<String> models;
+  final String selectedModel;
+  final bool isLoadingModels;
+  final Function(String) onModelSelected;
+  
+  const _ModelSelectionSheet({
+    required this.models,
+    required this.selectedModel,
+    required this.isLoadingModels,
+    required this.onModelSelected,
+  });
+  
+  @override
+  State<_ModelSelectionSheet> createState() => _ModelSelectionSheetState();
+}
+
+class _ModelSelectionSheetState extends State<_ModelSelectionSheet> {
+  final TextEditingController _searchController = TextEditingController();
+  List<String> _filteredModels = [];
+  Map<String, Map<String, dynamic>> _modelStatus = {};
+  bool _isLoadingStatus = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _filteredModels = widget.models;
+    _searchController.addListener(_filterModels);
+    _fetchModelStatus();
+  }
+  
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+  
+  void _filterModels() {
+    setState(() {
+      if (_searchController.text.isEmpty) {
+        _filteredModels = widget.models;
+      } else {
+        _filteredModels = widget.models
+            .where((model) =>
+                model.toLowerCase().contains(_searchController.text.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+  
+  Future<void> _fetchModelStatus() async {
+    setState(() => _isLoadingStatus = true);
+    
+    try {
+      // Fetch model status for each model
+      for (String model in widget.models) {
+        try {
+          final startTime = DateTime.now();
+          final response = await http.post(
+            Uri.parse('https://ahamai-api.officialprakashkrsingh.workers.dev/v1/chat/completions'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ahamaibyprakash25',
+            },
+            body: json.encode({
+              'model': model,
+              'messages': [{'role': 'user', 'content': 'hi'}],
+              'max_tokens': 1,
+            }),
+          );
+          final endTime = DateTime.now();
+          final responseTime = endTime.difference(startTime).inMilliseconds;
+          
+          setState(() {
+            _modelStatus[model] = {
+              'status': response.statusCode == 200 ? 'up' : 'down',
+              'responseTime': responseTime,
+            };
+          });
+        } catch (e) {
+          setState(() {
+            _modelStatus[model] = {
+              'status': 'down',
+              'responseTime': 0,
+            };
+          });
+        }
+      }
+    } catch (e) {
+      // Handle general error
+    } finally {
+      setState(() => _isLoadingStatus = false);
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFF4F3F0),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFC4C4C4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Text(
+                    'Select AI Model',
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF000000),
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded, color: Color(0xFFA3A3A3)),
+                  ),
+                ],
+              ),
+            ),
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search models...',
+                    hintStyle: GoogleFonts.inter(
+                      color: const Color(0xFFA3A3A3),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: Color(0xFFA3A3A3),
+                      size: 20,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF000000),
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+            LimitedBox(
+              maxHeight: 400,
+              child: widget.isLoadingModels
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(40),
+                        child: CircularProgressIndicator(color: Color(0xFF000000)),
+                      ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: _filteredModels.length,
+                      itemBuilder: (context, index) {
+                        final model = _filteredModels[index];
+                        final isSelected = widget.selectedModel == model;
+                        final status = _modelStatus[model];
+                        
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFFEAE9E5) : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: isSelected 
+                                ? Border.all(color: const Color(0xFF000000), width: 1.5) 
+                                : Border.all(color: const Color(0xFFE0E0E0), width: 1),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              model,
+                              style: GoogleFonts.inter(
+                                color: const Color(0xFF000000),
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                fontSize: 15,
+                              ),
+                            ),
+                            subtitle: status != null && !_isLoadingStatus
+                                ? Row(
+                                    children: [
+                                      Icon(
+                                        status['status'] == 'up' 
+                                            ? Icons.circle
+                                            : Icons.error_outline,
+                                        color: status['status'] == 'up' 
+                                            ? Colors.green 
+                                            : Colors.red,
+                                        size: 12,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        status['status'] == 'up' 
+                                            ? 'Online • ${status['responseTime']}ms'
+                                            : 'Offline',
+                                        style: GoogleFonts.inter(
+                                          color: status['status'] == 'up' 
+                                              ? Colors.green 
+                                              : Colors.red,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : _isLoadingStatus
+                                    ? Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 10,
+                                            height: 10,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 1.5,
+                                              color: const Color(0xFFA3A3A3),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'Checking status...',
+                                            style: GoogleFonts.inter(
+                                              color: const Color(0xFFA3A3A3),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : null,
+                            trailing: isSelected 
+                                ? const Icon(Icons.check_circle_rounded, color: Color(0xFF000000))
+                                : null,
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              widget.onModelSelected(model);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
   }
 }
 
