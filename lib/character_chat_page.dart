@@ -23,7 +23,7 @@ class CharacterChatPage extends StatefulWidget {
   State<CharacterChatPage> createState() => _CharacterChatPageState();
 }
 
-class _CharacterChatPageState extends State<CharacterChatPage> {
+class _CharacterChatPageState extends State<CharacterChatPage> with WidgetsBindingObserver {
   final _controller = TextEditingController();
   final _scroll = ScrollController();
   final _messages = <Message>[];
@@ -50,6 +50,7 @@ class _CharacterChatPageState extends State<CharacterChatPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeChat();
     _generateCharacterPrompts();
     _controller.addListener(() {
@@ -58,7 +59,25 @@ class _CharacterChatPageState extends State<CharacterChatPage> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Refresh messages when app resumes
+      final existingChat = _characterService.getCharacterChat(widget.character.id);
+      if (existingChat != null && existingChat.messages.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _messages.clear();
+            _messages.addAll(existingChat.messages);
+          });
+        }
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     _scroll.dispose();
     _streamSubscription?.cancel();
@@ -73,6 +92,12 @@ class _CharacterChatPageState extends State<CharacterChatPage> {
     if (existingChat != null && existingChat.messages.isNotEmpty) {
       // Reconstruct messages from saved data
       _messages.addAll(existingChat.messages);
+      // Force refresh after loading
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
     } else {
       // Start with character's greeting
       _messages.add(Message.bot(_getCharacterGreeting()));
@@ -225,8 +250,12 @@ class _CharacterChatPageState extends State<CharacterChatPage> {
                   final correctedContent = _fixServerEncoding(content);
                   buffer.write(correctedContent);
                   if (mounted) {
-                    setState(() => _messages.last = _messages.last.copyWith(text: buffer.toString(), isStreaming: true));
+                    setState(() {
+                      _messages.last = _messages.last.copyWith(text: buffer.toString(), isStreaming: true);
+                    });
                     _scrollDown();
+                    // Save chat during streaming to maintain state
+                    _saveCurrentChat();
                   }
                 }
               } catch (e) {
@@ -252,6 +281,7 @@ class _CharacterChatPageState extends State<CharacterChatPage> {
                 _awaitingReply = false;
               });
               _httpClient?.close();
+              _saveCurrentChat();
               completer.complete();
             }
           },

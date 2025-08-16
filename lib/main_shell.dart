@@ -779,25 +779,21 @@ class _AnimatedCharactersCardState extends State<_AnimatedCharactersCard>
             child: Container(
               height: 60,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEAE9E5),
-                borderRadius: BorderRadius.circular(12),
-              ),
               child: Stack(
                 children: [
-                  // Real person avatars
+                  // Real person avatars - made bigger
                   ...List.generate(3, (index) {
                     return Positioned(
-                      left: 25.0 + (index * 35.0) + (_floatingAnimations[index].value.dx * 30),
-                      top: 8.0 + (_floatingAnimations[index].value.dy * 15),
+                      left: 25.0 + (index * 45.0) + (_floatingAnimations[index].value.dx * 30),
+                      top: 4.0 + (_floatingAnimations[index].value.dy * 15),
                       child: Transform.scale(
-                        scale: _scaleAnimation.value * (0.7 + index * 0.1),
+                        scale: _scaleAnimation.value * (0.9 + index * 0.1),
                         child: Container(
-                          width: 24,
-                          height: 24,
+                          width: 32,
+                          height: 32,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white, width: 1.5),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white, width: 2),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.1),
@@ -807,7 +803,7 @@ class _AnimatedCharactersCardState extends State<_AnimatedCharactersCard>
                             ],
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10.5),
+                            borderRadius: BorderRadius.circular(14),
                             child: Image.network(
                               _getAvatarUrl(index),
                               fit: BoxFit.cover,
@@ -816,7 +812,7 @@ class _AnimatedCharactersCardState extends State<_AnimatedCharactersCard>
                                   color: _getElementColor(index),
                                   child: Icon(
                                     Icons.person,
-                                    size: 12,
+                                    size: 16,
                                     color: Colors.white,
                                   ),
                                 );
@@ -842,9 +838,9 @@ class _AnimatedCharactersCardState extends State<_AnimatedCharactersCard>
                       const SizedBox(width: 16),
                       const Expanded(
                         child: Text(
-                          'Characters',
+                          'Chat With Characters',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF000000),
                           ),
